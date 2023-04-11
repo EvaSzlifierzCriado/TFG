@@ -50,27 +50,9 @@ def CPU_numpy_MatMul(A,B):
 def CPU_numpy_numba_MatMul(A,B):  ### Identical to CPU_numpy_MatMul but for the decorator
     return np.dot(A,B)
 
-## 5. (GPU) loop + Numba multiplication -> 0.8816361427307129
-@jit(nopython=False, forceobj=True)
-def CPU_loop_numba_MatMul(A,B):
-    NrA, NcA = A.shape
-    NrB, NcB = B.shape
-
-    assert NcA == NrB
-
-    C = np.zeros((NrA,NcB))
-    for i in range(NrA):
-        for j in range(NcB):
-            c = 0.0
-            for k in range(NcA):
-                c += A[i,k] * B[k,j]
-            C[i,j] = c
-    
-    return C
-
-## 6. (GPU) loop multiplication 
+## 5. (GPU) loop multiplication 
 @cuda.jit
-def GPU_loop_matMult(A, B, C):
+def GPU_loop_numba_matMult(A, B, C):
   i, j = cuda.grid(2)
   if i < C.shape[0] and j < C.shape[1]:
     tmp = 0. 
@@ -78,7 +60,7 @@ def GPU_loop_matMult(A, B, C):
       tmp += A[i, k] * B[k, j]
     C[i, j] = tmp
 
-# 7. (GPU) loop + shared memory multiplication (reduces de number of times that each number is send to the GPU)
+# 6. (GPU) loop + shared memory multiplication (reduces de number of times that each number is send to the GPU)
 # (Not working rn)
 TPB = 2
 
@@ -105,7 +87,7 @@ def GPU_loop_matMult_sharedMemory(A, B, C):
     C[x,y] = tmp
 
 
-## 8. (GPU) CuPy multiplication
+## 7. (GPU) CuPy multiplication
 def GPU_CuPy_matMult(A, B):
     a_gpu = cp.asarray(A)
     b_gpu = cp.asarray(B)
@@ -114,82 +96,88 @@ def GPU_CuPy_matMult(A, B):
 
     return cp.asnumpy(c_gpu)
 
-def main():
-  A = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
-  B = np.array([[7, 8], [9, 10], [11, 12]], dtype=np.float32)
-  C = np.zeros((A.shape[0], B.shape[1]), dtype=np.float32)
-
-  threads_per_block = (16, 16)
-  blocks_per_grid_x = int(np.ceil(A.shape[0] / threads_per_block[0]))
-  blocks_per_grid_y = int(np.ceil(B.shape[1] / threads_per_block[1]))
-  blocks_per_grid = (blocks_per_grid_x, blocks_per_grid_y)
-
-  GPU_loop_matMult[blocks_per_grid, threads_per_block](A, B, C)
-  print(C)
-
-if __name__ == '__main__':
-  main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # Example matrices to try the code.
-# m1 = [[1, 2], [3, 4]]
-# m2 = [[5, 6], [7, 8]]
-# m3 = [[9, 10], [11, 12]]
-
-# # Given a list of matrixes M, returns the multiplication of all
-# # the matrices of the list using a loop. 
-# def matrixMult(M):
-#     result = M[0]
-#     for i in range(1, len(M)):
-#         matrix = M[i]
-#         if len(result[0]) != len(matrix): # C1 must be equal to F2
-#             raise ValueError('Matrices cannot be multiplicated')
-#         newResult = []
-#         for j in range(len(result)):
-#             row = []
-#             for k in range(len(matrix[0])):
-#                 element = 0
-#                 for l in range(len(matrix)):
-#                     element += result[j][l] * matrix[l][k]
-#                 row.append(element)
-#             newResult.append(row)
-#         result = newResult
-#     return result
-
-# # Matrix convolution
-
-# # Función de partición exacta
-
-# # Aproximación de de la función de partición con AIS
-
-
 # def main():
-#     print(matrixMult([m1, m2, m3]))
-    
-# main()
+#   A = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
+#   B = np.array([[7, 8], [9, 10], [11, 12]], dtype=np.float32)
+#   C = np.zeros((A.shape[0], B.shape[1]), dtype=np.float32)
+
+#   threads_per_block = (16, 16)
+#   blocks_per_grid_x = int(np.ceil(A.shape[0] / threads_per_block[0]))
+#   blocks_per_grid_y = int(np.ceil(B.shape[1] / threads_per_block[1]))
+#   blocks_per_grid = (blocks_per_grid_x, blocks_per_grid_y)
+
+#   GPU_loop_matMult[blocks_per_grid, threads_per_block](A, B, C)
+#   print(C)
+
+# if __name__ == '__main__':
+#   main()
+
+
+
+
+########################################
+### Main
+########################################
+
+
+R = 30
+
+N = 100
+M = 50
+A = np.random.randn(N,M)  #.astype(np.float32)
+B = np.random.randn(M,N)  #.astype(np.float32)
+
+K = 4
+F = np.random.randn(K,K)  #.astype(np.float32)
+
+griddim  = 8, 8
+blockdim = 16, 16
+
+
+
+########################################
+### Matrix multiplication
+
+print("====================================================")
+
+### CPU - numpy
+tic = time()
+for i in range(R):
+    C = CPU_numpy_MatMul(A,B)
+print(" MatMul - CPU - numpy:         {}".format(time() - tic))
+print(C[0,0])
+
+### CPU - numpy + numba
+C = CPU_numpy_numba_MatMul(A,B)  ### Compilation
+tic = time()
+for i in range(R):
+    C = CPU_numpy_numba_MatMul(A,B)
+print(" MatMul - CPU - numpy + numba: {}".format(time() - tic))
+print(C[0,0])
+
+### CPU - loop
+tic = time()
+for i in range(R):
+    C = CPU_loop_MatMul(A,B)
+print(" MatMul - CPU - loop:          {}".format(time() - tic))
+print(C[0,0])
+
+### CPU - loop + numba
+C = CPU_loop_numba_MatMul(A,B)   ### Compilation
+tic = time()
+for i in range(R):
+    C = CPU_loop_numba_MatMul(A,B)
+print(" MatMul - CPU - loop + numba:  {}".format(time() - tic))
+print(C[0,0])
+
+### GPU - loop + numba
+cA = cuda.to_device(A)
+cB = cuda.to_device(B)
+cC = cuda.to_device(np.zeros([A.shape[0],B.shape[1]]))
+#
+GPU_loop_numba_matMult[griddim, blockdim](cA,cB,cC)   ### Compilation
+tic = time()
+for i in range(R):
+    GPU_loop_numba_matMult[griddim, blockdim](cA,cB,cC)
+print(" MatMul - GPU - loop + numba:  {}".format(time() - tic))
+print(cC[0,0])
