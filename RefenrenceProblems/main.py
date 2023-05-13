@@ -1,7 +1,7 @@
-#from time import time
+from time import time
 import numpy as np
-#import numba
-#from numba import jit, cuda   ### njit, vectorization
+import numba
+from numba import jit, cuda   ### njit, vectorization
 
 
 ########################################

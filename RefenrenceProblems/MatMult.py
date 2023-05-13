@@ -3,10 +3,11 @@ import numpy as np
 import cupy as cp
 import numba
 from numba import jit, cuda 
+from numpy import float32
 
 ## Matrix Multiplication
 
-## 1. (CPU) Basic loop multiplication -> 0.0016710758209228516
+# 1. (CPU) Basic loop multiplication -> 0.0016710758209228516
 def CPU_loop_MatMul(A,B):
     NrA, NcA = A.shape
     NrB, NcB = B.shape
@@ -23,7 +24,7 @@ def CPU_loop_MatMul(A,B):
     
     return C
 
-## 2. (CPU) Loop + Numba multiplication -> 1.109595537185669
+# 2. (CPU) Loop + Numba multiplication -> 1.109595537185669
 @jit(nopython=False, forceobj=True)
 def CPU_loop_numba_MatMul(A,B):
     NrA, NcA = A.shape
@@ -41,16 +42,16 @@ def CPU_loop_numba_MatMul(A,B):
     
     return C
 
-## 3. (CPU) NumPy multiplication -> 0.005754232406616211
+# 3. (CPU) NumPy multiplication -> 0.005754232406616211
 def CPU_numpy_MatMul(A,B):
     return np.dot(A,B)
 
-## 4. (CPU) NumPy + Numba multiplication -> 0.6577882766723633
+# 4. (CPU) NumPy + Numba multiplication -> 0.6577882766723633
 @jit(nopython=True)
 def CPU_numpy_numba_MatMul(A,B):  ### Identical to CPU_numpy_MatMul but for the decorator
     return np.dot(A,B)
 
-## 5. (GPU) loop multiplication 
+# 5. (GPU) loop multiplication 
 @cuda.jit
 def GPU_loop_numba_matMult(A, B, C):
   i, j = cuda.grid(2)
@@ -60,15 +61,15 @@ def GPU_loop_numba_matMult(A, B, C):
       tmp += A[i, k] * B[k, j]
     C[i, j] = tmp
 
-# 6. (GPU) loop + shared memory multiplication (reduces de number of times that each number is send to the GPU)
-# (Not working rn)
+## 6. (GPU) loop + shared memory multiplication (reduces de number of times that each number is send to the GPU)
+# Matrix has to be  squared!!
 TPB = 2
 
 @cuda.jit
 def GPU_loop_matMult_sharedMemory(A, B, C):
   sA = cuda.shared.array(shape=(TPB, TPB), dtype=float32)
   sB = cuda.shared.array(shape=(TPB, TPB), dtype=float32)
-  x, y = cuda.grid()
+  x, y = cuda.grid(2)
 
   tx = cuda.threadIdx.x
   ty = cuda.threadIdx.y
@@ -86,7 +87,6 @@ def GPU_loop_matMult_sharedMemory(A, B, C):
       cuda.syncthreads()
     C[x,y] = tmp
 
-
 ## 7. (GPU) CuPy multiplication
 def GPU_CuPy_matMult(A, B):
     a_gpu = cp.asarray(A)
@@ -96,58 +96,47 @@ def GPU_CuPy_matMult(A, B):
 
     return cp.asnumpy(c_gpu)
 
-# def main():
-#   A = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
-#   B = np.array([[7, 8], [9, 10], [11, 12]], dtype=np.float32)
-#   C = np.zeros((A.shape[0], B.shape[1]), dtype=np.float32)
-
-#   threads_per_block = (16, 16)
-#   blocks_per_grid_x = int(np.ceil(A.shape[0] / threads_per_block[0]))
-#   blocks_per_grid_y = int(np.ceil(B.shape[1] / threads_per_block[1]))
-#   blocks_per_grid = (blocks_per_grid_x, blocks_per_grid_y)
-
-#   GPU_loop_matMult[blocks_per_grid, threads_per_block](A, B, C)
-#   print(C)
-
-# if __name__ == '__main__':
-#   main()
-
-
-
-
 ########################################
 ### Main
 ########################################
 
-
+# Common:
 R = 30
 
-N = 100
-M = 50
+N = 128
+M = 112
+
+# MatMult and MatConvol vars:
 A = np.random.randn(N,M)  #.astype(np.float32)
 B = np.random.randn(M,N)  #.astype(np.float32)
+C = np.zeros([A.shape[0],B.shape[1]])
 
 K = 4
 F = np.random.randn(K,K)  #.astype(np.float32)
 
-griddim  = 8, 8
-blockdim = 16, 16
+#################
+threadsperblock = (16, 16) # each block will contain 16×16 threads, typically 128 - 512 threads/bl
+blockspergrid_x = int(np.ceil(C.shape[0] / threadsperblock[0]))
+blockspergrid_y = int(np.ceil(C.shape[1] / threadsperblock[1]))
+blockspergrid = (blockspergrid_x, blockspergrid_y)
+print(blockspergrid)
+print(f"The kernel will be executed up to element {threadsperblock[0]*blockspergrid_x}")
 
-
+TPB = 16
 
 ########################################
 ### Matrix multiplication
 
 print("====================================================")
 
-### CPU - numpy
+# CPU - numpy
 tic = time()
 for i in range(R):
     C = CPU_numpy_MatMul(A,B)
 print(" MatMul - CPU - numpy:         {}".format(time() - tic))
 print(C[0,0])
 
-### CPU - numpy + numba
+# CPU - numpy + numba
 C = CPU_numpy_numba_MatMul(A,B)  ### Compilation
 tic = time()
 for i in range(R):
@@ -155,14 +144,14 @@ for i in range(R):
 print(" MatMul - CPU - numpy + numba: {}".format(time() - tic))
 print(C[0,0])
 
-### CPU - loop
+# CPU - loop
 tic = time()
 for i in range(R):
     C = CPU_loop_MatMul(A,B)
 print(" MatMul - CPU - loop:          {}".format(time() - tic))
 print(C[0,0])
 
-### CPU - loop + numba
+# CPU - loop + numba
 C = CPU_loop_numba_MatMul(A,B)   ### Compilation
 tic = time()
 for i in range(R):
@@ -170,14 +159,32 @@ for i in range(R):
 print(" MatMul - CPU - loop + numba:  {}".format(time() - tic))
 print(C[0,0])
 
-### GPU - loop + numba
+# GPU - loop + numba
 cA = cuda.to_device(A)
 cB = cuda.to_device(B)
 cC = cuda.to_device(np.zeros([A.shape[0],B.shape[1]]))
 #
-GPU_loop_numba_matMult[griddim, blockdim](cA,cB,cC)   ### Compilation
+GPU_loop_numba_matMult[blockspergrid, threadsperblock](cA,cB,cC)   ### Compilation
 tic = time()
 for i in range(R):
-    GPU_loop_numba_matMult[griddim, blockdim](cA,cB,cC)
+    GPU_loop_numba_matMult[blockspergrid, threadsperblock](cA,cB,cC)
 print(" MatMul - GPU - loop + numba:  {}".format(time() - tic))
 print(cC[0,0])
+
+# GPU - Shared Memory
+cA = cuda.to_device(A)
+cB = cuda.to_device(B)
+cC = cuda.to_device(np.zeros([A.shape[0],B.shape[1]]))
+GPU_loop_matMult_sharedMemory[blockspergrid, threadsperblock](cA,cB,cC)
+tic = time()
+for i in range(R):
+    GPU_loop_matMult_sharedMemory[blockspergrid, threadsperblock](cA,cB,cC)
+print(" MatMul - GPU - Shared Memory:  {}".format(time() - tic))
+print(cC[0,0])
+
+# GPU - Cupy
+tic = time()
+for i in range(R):
+    C = GPU_CuPy_matMult(A, B)
+print(" MatMul - GPU - Cupy1:  {}".format(time() - tic))
+print(C[0,0])
