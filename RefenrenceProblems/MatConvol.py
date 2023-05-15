@@ -178,59 +178,59 @@ print("====================================================")
 # CPU - numpy
 tic = time()
 for i in range(R):
-    C = CPU_numpy_MatMul(A,B)
-print(" MatMul - CPU - numpy:         {}".format(time() - tic))
+    C = CPU_numpy_Convol(A,F)
+print(" Convol - CPU - numpy:         {}".format(time() - tic))
 print(C[0,0])
 
 # CPU - numpy + numba
-C = CPU_numpy_numba_MatMul(A,B)  ### Compilation
+C = CPU_numpy_numba_Convol(A,F)  ### Compilation
 tic = time()
 for i in range(R):
-    C = CPU_numpy_numba_MatMul(A,B)
-print(" MatMul - CPU - numpy + numba: {}".format(time() - tic))
+    C = CPU_numpy_numba_Convol(A,F)
+print(" Convol - CPU - numpy + numba: {}".format(time() - tic))
 print(C[0,0])
 
 # CPU - loop
 tic = time()
 for i in range(R):
-    C = CPU_loop_MatMul(A,B)
-print(" MatMul - CPU - loop:          {}".format(time() - tic))
+    C = CPU_loop_Convol(A,F)
+print(" Convol - CPU - loop:          {}".format(time() - tic))
 print(C[0,0])
 
 # CPU - loop + numba
-C = CPU_loop_numba_MatMul(A,B)   ### Compilation
+C = CPU_loop_numba_Convol(A,F)   ### Compilation
 tic = time()
 for i in range(R):
-    C = CPU_loop_numba_MatMul(A,B)
-print(" MatMul - CPU - loop + numba:  {}".format(time() - tic))
+    C = CPU_loop_numba_Convol(A,F)
+print(" Convol- CPU - loop + numba:  {}".format(time() - tic))
 print(C[0,0])
 
 # GPU - loop + numba
 cA = cuda.to_device(A)
-cB = cuda.to_device(B)
-cC = cuda.to_device(np.zeros([A.shape[0],B.shape[1]]))
+cF = cuda.to_device(F)
+cC = cuda.to_device(np.zeros([A.shape[0],F.shape[1]]))
 #
-GPU_loop_numba_matMult[blockspergrid, threadsperblock](cA,cB,cC)   ### Compilation
+GPU_loop_numba_Convol[blockspergrid, threadsperblock](cA,cF,cC)   ### Compilation
 tic = time()
 for i in range(R):
-    GPU_loop_numba_matMult[blockspergrid, threadsperblock](cA,cB,cC)
-print(" MatMul - GPU - loop + numba:  {}".format(time() - tic))
+    GPU_loop_numba_Convol[blockspergrid, threadsperblock](cA,cF,cC)
+print(" Convol - GPU - loop + numba:  {}".format(time() - tic))
 print(cC[0,0])
 
-# GPU - Shared Memory
-cA = cuda.to_device(A)
-cB = cuda.to_device(B)
-cC = cuda.to_device(np.zeros([A.shape[0],B.shape[1]]))
-GPU_loop_matMult_sharedMemory[blockspergrid, threadsperblock](cA,cB,cC)
-tic = time()
-for i in range(R):
-    GPU_loop_matMult_sharedMemory[blockspergrid, threadsperblock](cA,cB,cC)
-print(" MatMul - GPU - Shared Memory:  {}".format(time() - tic))
-print(cC[0,0])
+# # GPU - Shared Memory
+# cA = cuda.to_device(A)
+# cB = cuda.to_device(B)
+# cC = cuda.to_device(np.zeros([A.shape[0],B.shape[1]]))
+# GPU_loop_matMult_sharedMemory[blockspergrid, threadsperblock](cA,cB,cC)
+# tic = time()
+# for i in range(R):
+#     GPU_loop_matMult_sharedMemory[blockspergrid, threadsperblock](cA,cB,cC)
+# print(" MatMul - GPU - Shared Memory:  {}".format(time() - tic))
+# print(cC[0,0])
 
-# GPU - Cupy
-tic = time()
-for i in range(R):
-    C = GPU_CuPy_matMult(A, B)
-print(" MatMul - GPU - Cupy1:  {}".format(time() - tic))
-print(C[0,0])
+# # GPU - Cupy
+# tic = time()
+# for i in range(R):
+#     C = GPU_CuPy_matMult(A, B)
+# print(" MatMul - GPU - Cupy1:  {}".format(time() - tic))
+# print(C[0,0])
