@@ -3,7 +3,7 @@ from math import e
 import numba.cuda as cuda
 from time import time
 import numba
-from numba import jit, cuda   ### njit, vectorization
+from numba import jit, cuda, float64  ### njit, vectorization
 
 # Scalar product of two arrays
 def CPU_loop_ArrayMul(A,B):
@@ -145,27 +145,27 @@ m = 4
 
 R = 30
 
-W = np.random.random((n,m)) # Matrix size NxM, small values
-b = np.random.random((n)) # Array size N, small values
-c = np.random.random((m)) # Array size M, small values
+W = np.random.random((n,m)) * 0.0000001 # Matrix size NxM, small values
+b = np.random.random((n)) * 0.0000001 # Array size N, small values
+c = np.random.random((m)) * 0.0000001 # Array size M, small values
 
 # Create array x, size 2^n
-x = np.zeros((2**n, n), dtype=np.float32)
+x = np.zeros((2**n, n), dtype=np.float64)
 for i in range(2**n):
     x_i_bin = np.binary_repr(i, n)
     x[i] = [int(j) for j in str(x_i_bin)]
 
 # Create array h, size 2^m
-h = np.zeros((2**m, m), dtype=np.float32)
+h = np.zeros((2**m, m), dtype=np.float64)
 for i in range(2**m):
     h_i_bin = np.binary_repr(i, m)
     h[i] = [int(j) for j in str(h_i_bin)]
 
-print("W:", W)
-print("b:", b)
-print("c:", c)
-print("x:", x)
-print("h:", h)
+# print("W:", W)
+# print("b:", b)
+# print("c:", c)
+# print("x:", x)
+# print("h:", h)
 
 ### CPU - loop
 tic = time()
@@ -188,6 +188,7 @@ for i in range(R):
     res = CPU_numpy_Partition(W,b,c,x,h)
 print(" Partition - CPU - numpy:          {}".format(time() - tic))
 print(res)
+# print(np.dtype(res))
 
 ### CPU - numpy + numba
 res = CPU_numpy_numba_Partition(W,b,c,x,h)   ### Compilation
@@ -198,7 +199,7 @@ print(" Partition - CPU - numpy + numba:  {}".format(time() - tic))
 print(res)
 
 ### GPU - loop
-result = np.zeros(x.shape[0], dtype=np.float32)
+result = np.zeros(x.shape[0], dtype=np.float64)
 threads_per_block = 64
 blocks_per_grid = 16
 cW = cuda.to_device(W)
@@ -208,12 +209,26 @@ cx = cuda.to_device(x)
 ch = cuda.to_device(h)
 cresult = cuda.to_device(result)
 
+# print(np.dtype(W[0][0]))
+# print(np.dtype(b[0]))
+# print(np.dtype(c[0]))
+# print(np.dtype(x[0][0]))
+# print(np.dtype(h[0][0]))
+
+# print(np.dtype(cW))
+# print(np.dtype(cb))
+# print(np.dtype(cc))
+# print(np.dtype(cx))
+# print(np.dtype(ch))
+# print(np.dtype(cresult))
+
 tic = time()
 for i in range(R):
     GPU_loop_Partition[blocks_per_grid, threads_per_block](cW,cb,cc,cx,ch, cresult)
     res = np.sum(cresult)
 print(" Partition - GPU - loop:  {}".format(time() - tic))
 print(res)
+# print(np.dtype(res))
 
 
 ############### Small values ###############:
