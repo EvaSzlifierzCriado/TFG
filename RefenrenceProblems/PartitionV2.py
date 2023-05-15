@@ -31,11 +31,11 @@ for i in range(2**m):
 BIN = np.zeros((2), dtype=np.float64)
 BIN[1] = 1.0   ### Possible values of every position (only [0,1] or [-1,+1])
 
-print("W:", W)
-print("b:", b)
-print("c:", c)
-print("x:", x)
-print("h:", h)
+# print("W:", W)
+# print("b:", b)
+# print("c:", c)
+# print("x:", x)
+# print("h:", h)
 
 ###############################################
 
@@ -101,9 +101,6 @@ print(np.dtype(x[0][0]))
 print(np.dtype(h[0][0]))
 print(np.dtype(BIN[0]))
 
-
-print("PartitionV1:", CPU_loop_Partition(W,b,c,x,h))
-print("PartitionV2:", CPU_loop_PartitionV2(W,b,c,x,h))
 
 ##2. CPU + Numba Partition
 @jit(nopython=False, forceobj=True)
@@ -173,7 +170,7 @@ def GPU_loop_PartitionV2(W, b, c, x, h, cBIN, result):
 tic = time()
 for i in range(R):
     res = CPU_loop_PartitionV2(W,b,c,x,h)
-print(" Partition - CPU - loop:         {}".format(time() - tic))
+print(" Partition2 - CPU - loop:         {}".format(time() - tic))
 print(res)
 
 ### CPU - numba
@@ -181,14 +178,14 @@ res = CPU_loop_numba_PartitionV2(W,b,c,x,h)  ### Compilation
 tic = time()
 for i in range(R):
     res = CPU_loop_numba_PartitionV2(W,b,c,x,h)
-print(" Partition - CPU - numba: {}".format(time() - tic))
+print(" Partition2 - CPU - numba: {}".format(time() - tic))
 print(res)
 
 ### CPU - numpy
 tic = time()
 for i in range(R):
     res = CPU_numpy_PartitionV2(W,b,c,x,h)
-print(" Partition - CPU - numpy:          {}".format(time() - tic))
+print(" Partition2 - CPU - numpy:          {}".format(time() - tic))
 print(res)
 
 # ### CPU - numpy + numba
@@ -224,5 +221,5 @@ tic = time()
 for i in range(R):
     GPU_loop_PartitionV2[blocks_per_grid, threads_per_block](cW,cb,cc,cx,ch,cBIN,cresult)
     res = np.sum(cresult)
-print(" Partition - GPU - loop:  {}".format(time() - tic))
+print(" Partition2 - GPU - loop:  {}".format(time() - tic))
 print(res)
