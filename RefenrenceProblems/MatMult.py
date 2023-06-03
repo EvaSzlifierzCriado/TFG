@@ -407,6 +407,14 @@ for i in range(R):
 print(" MatMul - CPU - loop + numba (Eager):  {}".format(time() - tic))
 print(C[0,0])
 
+# CPU - loop + numba (Eager, NJit)
+C = CPU_loop_numba_MatMulEagerNJit(A,B)   ### Compilation
+tic = time()
+for i in range(R):
+    C = CPU_loop_numba_MatMulEagerNJit(A,B)
+print(" MatMul - CPU - loop + numba (Eager, NJit):  {}".format(time() - tic))
+print(C[0,0])
+
 # CPU - loop + numba (NoGil)
 C = CPU_loop_numba_MatMulNoGil(A,B)   ### Compilation
 tic = time()
@@ -439,7 +447,7 @@ for i in range(R):
 print(" MatMul - CPU - loop + numba (GuVectorize):  {}".format(time() - tic))
 print(C[0,0])
 
-# CPU - loop + numba (Cache)
+# CPU - loop + numba (CFunc)
 C = CPU_loop_numba_MatMulCFunc(A,B)   ### Compilation
 tic = time()
 for i in range(R):
