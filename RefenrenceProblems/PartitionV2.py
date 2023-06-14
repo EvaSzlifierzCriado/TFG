@@ -3,7 +3,7 @@ from math import e
 import numba.cuda as cuda
 from time import time
 import numba
-from numba import jit, cuda   ### njit, vectorization
+from numba import jit, cuda, float64, guvectorize, cfunc
 import math
 
 # Partition Vars:
@@ -68,31 +68,64 @@ def CPU_loop_ArrayMul(A,B):
         res += A[i]*B[i]
     return(res)
 
-# Multiplies array A per matrix B
-def CPU_loop_ArrayMatMul(A,B): 
+# # Multiplies array A per matrix B
+# def CPU_loop_ArrayMatMul(A,B): 
+
+#     NcA = len(A)
+#     NrB = len(B)
+#     NcB = len(B[0])
+
+#     assert NcA == NrB
+
+#     res = []
+
+#     for i in range(NcB):
+#         sum = 0
+#         for j in range(NcA):
+#             sum += A[j] * B[j][i]
+#         res.append(sum)
+#     return(res)
+
+# Scalar product of two arrays with jit decorator
+@jit
+def CPU_loop_ArrayMulJit(A,B):
 
     NcA = len(A)
     NrB = len(B)
-    NcB = len(B[0])
 
     assert NcA == NrB
 
-    res = []
-
-    for i in range(NcB):
-        sum = 0
-        for j in range(NcA):
-            sum += A[j] * B[j][i]
-        res.append(sum)
+    res = 0
+    for i in range(NcA):
+        res += A[i]*B[i]
     return(res)
 
-# V1:
-def CPU_loop_Partition(W, b, c, x, h): 
-    sum_xh = 0
-    for i in range(2**n):
-        for j in range(2**m):
-            sum_xh += e**(CPU_loop_ArrayMul(np.transpose(b), x[i]) + CPU_loop_ArrayMul(np.transpose(c), h[j]) + CPU_loop_ArrayMul(CPU_loop_ArrayMatMul(np.transpose(x[i]), W), h[j]))
-    return sum_xh
+# # Multiplies array A per matrix B with jit decorator
+# @jit
+# def CPU_loop_ArrayMatMulJit(A,B): 
+
+#     NcA = len(A)
+#     NrB = len(B)
+#     NcB = len(B[0])
+
+#     assert NcA == NrB
+
+#     res = []
+
+#     for i in range(NcB):
+#         sum = 0
+#         for j in range(NcA):
+#             sum += B[j][i] * A[j]
+#         res.append(sum)
+#     return(res)
+
+# # V1:
+# def CPU_loop_Partition(W, b, c, x, h): 
+#     sum_xh = 0
+#     for i in range(2**n):
+#         for j in range(2**m):
+#             sum_xh += e**(CPU_loop_ArrayMul(np.transpose(b), x[i]) + CPU_loop_ArrayMul(np.transpose(c), h[j]) + CPU_loop_ArrayMul(CPU_loop_ArrayMatMul(np.transpose(x[i]), W), h[j]))
+#     return sum_xh
 
 print(np.dtype(W[0][0]))
 print(np.dtype(b[0]))
@@ -103,19 +136,135 @@ print(np.dtype(BIN[0]))
 
 
 ##2. CPU + Numba Partition
-@jit(nopython=False, forceobj=True)
-def CPU_loop_numba_PartitionV2(W,b,c,x,h):
-    Prod_h_x = 0
+@jit
+def CPU_loop_numba_Partition(W,b,c,x,h):
+    Sum_x_h = 0
     c_transp = np.transpose(c)
-    for j in range(2**m): # Sum h 
-        Prod_x = 1
-        for i in range(n): 
-            sum_x = 0
-            for k in range(2):
-                sum_x += e**(BIN[k]*(CPU_loop_ArrayMul(W[i],h[j]) + b[i]))
-            Prod_x *= sum_x
-        Prod_h_x += ((e**(CPU_loop_ArrayMul(c_transp, h[j]))) * Prod_x)
-    return(Prod_h_x)
+    for i in range(2**n): # Sum x
+        E_x_h = 0
+        x_transp = np.transpose(x[i])
+        for j in range(2**m): # Sum h
+            E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+        Sum_x_h += e**E_x_h
+    return(Sum_x_h)
+
+@jit(nopython=False, forceobj=True)
+def CPU_loop_numba_PartitionObject(W,b,c,x,h):
+    Sum_x_h = 0
+    c_transp = np.transpose(c)
+    for i in range(2**n): # Sum x
+        E_x_h = 0
+        x_transp = np.transpose(x[i])
+        for j in range(2**m): # Sum h
+            E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+        Sum_x_h += e**E_x_h
+    return(Sum_x_h)
+
+@jit(nopython=True)
+def CPU_loop_numba_PartitionNJit(W,b,c,x,h):
+    Sum_x_h = 0
+    c_transp = np.transpose(c)
+    for i in range(2**n): # Sum x
+        E_x_h = 0
+        x_transp = np.transpose(x[i])
+        for j in range(2**m): # Sum h
+            E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+        Sum_x_h += e**E_x_h
+    return(Sum_x_h)
+
+@jit(float64(float64[:,:], float64[:], float64[:], float64[:,:], float64[:,:]))
+def CPU_loop_numba_PartitionEager(W,b,c,x,h):
+    Sum_x_h = 0
+    c_transp = np.transpose(c)
+    for i in range(2**n): # Sum x
+        E_x_h = 0
+        x_transp = np.transpose(x[i])
+        for j in range(2**m): # Sum h
+            E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+        Sum_x_h += e**E_x_h
+    return(Sum_x_h)
+
+@jit(float64(float64[:,:], float64[:], float64[:], float64[:,:], float64[:,:],float64,float64), nopython=True)
+def CPU_loop_numba_PartitionEagerNJit(W,b,c,x,h,n,m):
+    Sum_x_h = 0
+    c_transp = np.transpose(c)
+    for i in range(2**n): # Sum x
+        E_x_h = 0
+        x_transp = np.transpose(x[i])
+        for j in range(2**m): # Sum h
+            E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+        Sum_x_h += e**E_x_h
+    return(Sum_x_h)
+
+@jit(nogil=True)
+def CPU_loop_numba_PartitionNoGil(W,b,c,x,h):
+    Sum_x_h = 0
+    c_transp = np.transpose(c)
+    for i in range(2**n): # Sum x
+        E_x_h = 0
+        x_transp = np.transpose(x[i])
+        for j in range(2**m): # Sum h
+            E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+        Sum_x_h += e**E_x_h
+    return(Sum_x_h)
+
+@jit(cache=True)
+def CPU_loop_numba_PartitionCache(W,b,c,x,h):
+    Sum_x_h = 0
+    c_transp = np.transpose(c)
+    for i in range(2**n): # Sum x
+        E_x_h = 0
+        x_transp = np.transpose(x[i])
+        for j in range(2**m): # Sum h
+            E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+        Sum_x_h += e**E_x_h
+    return(Sum_x_h)
+
+@jit(parallel=True)
+def CPU_loop_numba_PartitionParallel(W,b,c,x,h):
+    Sum_x_h = 0
+    c_transp = np.transpose(c)
+    for i in range(2**n): # Sum x
+        E_x_h = 0
+        x_transp = np.transpose(x[i])
+        for j in range(2**m): # Sum h
+            E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+        Sum_x_h += e**E_x_h
+    return(Sum_x_h)
+
+# @guvectorize([float64[:,:], float64[:], float64[:], float64[:,:], float64[:,:], float64], '(n,m),(m,p)->(n,p)', nopython=True)
+# def CPU_loop_numba_PartitionGuVectorize(W,b,c,x,h,Sum_x_h):
+#     c_transp = np.transpose(c)
+#     for i in range(2**n): # Sum x
+#         E_x_h = 0
+#         x_transp = np.transpose(x[i])
+#         for j in range(2**m): # Sum h
+#             E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+#         Sum_x_h += e**E_x_h
+
+@cfunc("float64(float64[:,:], float64[:], float64[:], float64[:,:], float64[:,:], float64, float64)")
+def CPU_loop_numba_PartitionCFunc(W,b,c,x,h,n,m):
+    Sum_x_h = 0
+    c_transp = np.transpose(c)
+    for i in range(2**n): # Sum x
+        E_x_h = 0
+        x_transp = np.transpose(x[i])
+        for j in range(2**m): # Sum h
+            E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+        Sum_x_h += e**E_x_h
+    return(Sum_x_h)
+
+@jit(fastmath = True)
+def CPU_loop_numba_PartitionFastMath(W,b,c,x,h):
+    Sum_x_h = 0
+    c_transp = np.transpose(c)
+    for i in range(2**n): # Sum x
+        E_x_h = 0
+        x_transp = np.transpose(x[i])
+        for j in range(2**m): # Sum h
+            E_x_h += CPU_loop_ArrayMulJit(x_transp,b) + CPU_loop_ArrayMulJit(c_transp,h[j]) + CPU_loop_ArrayMulJit(CPU_loop_ArrayMatMulJit(x_transp,W),h[j])
+        Sum_x_h += e**E_x_h
+    return(Sum_x_h)
 
 ##3. Numpy partition
 def CPU_numpy_PartitionV2(W,b,c,x,h):
@@ -173,13 +322,101 @@ for i in range(R):
 print(" Partition2 - CPU - loop:         {}".format(time() - tic))
 print(res)
 
-### CPU - numba
-res = CPU_loop_numba_PartitionV2(W,b,c,x,h)  ### Compilation
+################ Numba ######################
+
+
+### CPU - numba (jit)
+res = CPU_loop_numba_Partition(W,b,c,x,h)  ### Compilation
 tic = time()
 for i in range(R):
-    res = CPU_loop_numba_PartitionV2(W,b,c,x,h)
-print(" Partition2 - CPU - numba: {}".format(time() - tic))
+    res = CPU_loop_numba_Partition(W,b,c,x,h)
+print(" Partition - CPU - numba (jit): {}".format(time() - tic))
 print(res)
+
+# CPU - loop + numba (Object Mode)
+res = CPU_loop_numba_PartitionObject(W,b,c,x,h)   ### Compilation
+tic = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionObject(W,b,c,x,h) 
+print(" Partition - CPU - loop + numba (Object):  {}".format(time() - tic))
+print(res)
+
+# CPU - loop + numba (njit)
+res = CPU_loop_numba_PartitionNJit(W,b,c,x,h)    ### Compilation
+tic = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionNJit(W,b,c,x,h) 
+print(" Partition - CPU - loop + numba (njit):  {}".format(time() - tic))
+print(res)
+
+# CPU - loop + numba (Eager)
+res = CPU_loop_numba_PartitionEager(W,b,c,x,h)    ### Compilation
+tic = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionEager(W,b,c,x,h) 
+print(" Partition - CPU - loop + numba (Eager):  {}".format(time() - tic))
+print(res)
+
+# CPU - loop + numba (Eager, NJit)
+res = CPU_loop_numba_PartitionEagerNJit(W,b,c,x,h,n,m)   ### Compilation
+tic = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionEagerNJit(W,b,c,x,h,n,m)
+print(" Partition - CPU - loop + numba (Eager, NJit):  {}".format(time() - tic))
+print(res)
+
+# CPU - loop + numba (NoGil)
+res = CPU_loop_numba_PartitionNoGil(W,b,c,x,h)   ### Compilation
+tic = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionNoGil(W,b,c,x,h)
+print(" Partition - CPU - loop + numba (NoGil):  {}".format(time() - tic))
+print(res)
+
+# CPU - loop + numba (Cache)
+res = CPU_loop_numba_PartitionCache(W,b,c,x,h)   ### Compilation
+tic = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionCache(W,b,c,x,h)
+print(" Partition - CPU - loop + numba (Cache):  {}".format(time() - tic))
+print(res)
+
+## It is not possible
+# # CPU - loop + numba (Parallel)
+# res = CPU_loop_numba_PartitionParallel(W,b,c,x,h)   ### Compilation
+# tic = time()
+# for i in range(R):
+#     res = CPU_loop_numba_PartitionParallel(W,b,c,x,h)
+# print(" Partition - CPU - loop + numba (Parallel):  {}".format(time() - tic))
+# print(res)
+
+# # CPU - loop + numba (GuVectorize)
+# res = 0.
+# CPU_loop_numba_PartitionGuVectorize(W,b,c,x,h,res)   ### Compilation
+# tic = time()
+# for i in range(R):
+#     CPU_loop_numba_PartitionGuVectorize(W,b,c,x,h,reset_all)
+# print(" Partition - CPU - loop + numba (GuVectorize):  {}".format(time() - tic))
+# print(res)
+
+# CPU - loop + numba (CFunc)
+res = CPU_loop_numba_PartitionCFunc(W,b,c,x,h,n,m)   ### Compilation
+tic = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionCFunc(W,b,c,x,h,n,m)
+print(" Partition - CPU - loop + numba (CFunc):  {}".format(time() - tic))
+print(res)
+
+# CPU - loop + numba (FastMath)
+res = CPU_loop_numba_PartitionFastMath(W,b,c,x,h)   ### Compilation
+tic = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionFastMath(W,b,c,x,h)
+print(" Partition - CPU - loop + numba (FastMath):  {}".format(time() - tic))
+print(res)
+
+
+#############################################
 
 ### CPU - numpy
 tic = time()
