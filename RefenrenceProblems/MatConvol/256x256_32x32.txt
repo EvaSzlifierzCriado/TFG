@@ -1,0 +1,37 @@
+The kernel will be executed up to element 256
+Threads per block: (16, 16)
+Blocks per grid: (16, 16)
+The kernel will be executed up to element 256
+====================================================
+ Convol - CPU - numpy:         {} 22.914480209350586
+-3.2459967521423856
+ Convol - CPU - numpy + numba (exec): {} 6.097209692001343
+ Convol - CPU - numpy + numba: {} 6.776253700256348
+-3.245996752142405
+ Convol - CPU - loop + numba (jit) (exec):  {} 7.614727020263672
+ Convol - CPU - loop + numba (jit):  {} 8.643974781036377
+-3.245996752142405
+ Convol - CPU - loop + numba (njit) (exec):  {} 5.728249788284302
+ Convol - CPU - loop + numba (njit):  {} 6.339762926101685
+-3.245996752142405
+ Convol - CPU - loop + numba (Eager) (exec):  {} 2.2909390926361084
+ Convol - CPU - loop + numba (Eager):  {} 2.3669872283935547
+-3.245996752142405
+ Convol - CPU - loop + numba (Eager, NJit) (exec):  {} 2.2919297218322754
+ Convol - CPU - loop + numba (Eager, NJit):  {} 2.3746016025543213
+-3.245996752142405
+ Convol - CPU - loop + numba (NoGil) (exec):  {} 3.3906409740448
+ Convol - CPU - loop + numba (NoGil):  {} 3.6996748447418213
+-3.245996752142405
+ Convol - CPU - loop + numba (Cache) (exec):  {} 4.483157396316528
+ Convol - CPU - loop + numba (Cache):  {} 4.844883441925049
+-3.245996752142405
+ Convol - CPU - loop + numba (Parallel) (exec):  {} 3.6020097732543945
+ Convol - CPU - loop + numba (Parallel):  {} 4.77535080909729
+-3.245996752142405
+ Convol - CPU - loop + numba (FastMath) (exec):  {} 3.1653566360473633
+ Convol - CPU - loop + numba (FastMath):  {} 3.465843439102173
+-3.245996752142382
+ Convol - GPU - loop + numba (exec):  {} 0.0020906925201416016
+ Convol - GPU - loop + numba:  {} 0.20468497276306152
+-3.245996752142382

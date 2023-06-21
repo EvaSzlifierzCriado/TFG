@@ -1,0 +1,31 @@
+====================================================
+Threads per block: 64
+Blocks per grid: 16
+ Partition - CPU - numpy:          {} 192.83087468147278
+1025.8039669529664
+ Partition - CPU - numpy + numba (exec):  {} 11.467710733413696
+ Partition - CPU - numpy + numba:  {} 12.160769701004028
+1025.8039669529664
+ Partition - CPU - numba (jit) (exec): {} 13.86817193031311
+ Partition - CPU - numba (jit): {} 14.952565431594849
+1025.8039669529664
+ Partition - CPU - loop + numba (njit) (exec):  {} 14.715800523757935
+ Partition - CPU - loop + numba (njit):  {} 15.399372100830078
+1025.8039669529664
+ Partition - CPU - loop + numba (Eager, NJit) (exec):  {} 14.246299505233765
+ Partition - CPU - loop + numba (Eager, NJit):  {} 14.931108951568604
+1025.8039669529664
+ Partition - CPU - loop + numba (NoGil) (exec):  {} 14.062318563461304
+ Partition - CPU - loop + numba (NoGil):  {} 14.743626594543457
+1025.8039669529664
+ Partition - CPU - loop + numba (Cache) (exec):  {} 13.779766082763672
+ Partition - CPU - loop + numba (Cache):  {} 14.464860916137695
+1025.8039669529664
+ Partition - CPU - loop + numba (FastMath) (exec):  {} 13.8169527053833
+ Partition - CPU - loop + numba (FastMath):  {} 14.503702402114868
+1025.8039669529664
+/usr/local/lib/python3.10/dist-packages/numba/cuda/dispatcher.py:488: NumbaPerformanceWarning: Grid size 16 will likely result in GPU under-utilization due to low occupancy.
+  warn(NumbaPerformanceWarning(msg))
+ Partition - GPU - loop (exec):  {} 0.27753233909606934
+ Partition - GPU - loop:  {} 0.5285582542419434
+inf

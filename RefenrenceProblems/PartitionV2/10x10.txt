@@ -1,0 +1,38 @@
+Threads per block: 64
+Blocks per grid 16
+ PartitionV2 - CPU - loop:         {} 5.538141250610352
+2.0650260470513927e+26
+ PartitionV2 - CPU - numpy:          {} 6.027992248535156
+2.0650260470513927e+26
+ PartitionV2 - CPU - numba (jit) (exec): {} 0.03425478935241699
+ PartitionV2 - CPU - numba (jit): {} 0.804741382598877
+2.0650260470513927e+26
+ PartitionV2 - CPU - loop + numba (Object) (exec):  {} 0.9382059574127197
+ PartitionV2 - CPU - loop + numba (Object):  {} 1.9729669094085693
+2.0650260470513927e+26
+ PartitionV2 - CPU - loop + numba (njit) (exec):  {} 0.019870519638061523
+ PartitionV2 - CPU - loop + numba (njit):  {} 0.2597696781158447
+2.0650260470513927e+26
+ PartitionV2 - CPU - loop + numba (Eager) (exec):  {} 0.02514171600341797
+ PartitionV2 - CPU - loop + numba (Eager):  {} 0.02603006362915039
+2.0650260470513927e+26
+ PartitionV2 - CPU - loop + numba (Eager, NJit) (exec):  {} 0.025393962860107422
+ PartitionV2 - CPU - loop + numba (Eager, NJit):  {} 0.026293516159057617
+2.0650260470513927e+26
+ PartitionV2 - CPU - loop + numba (NoGil) (exec):  {} 0.02084183692932129
+ PartitionV2 - CPU - loop + numba (NoGil):  {} 0.269503116607666
+2.0650260470513927e+26
+ PartitionV2 - CPU - loop + numba (Cache) (exec):  {} 0.02063131332397461
+ PartitionV2 - CPU - loop + numba (Cache):  {} 0.43003416061401367
+2.0650260470513927e+26
+ PartitionV2 - CPU - loop + numba (CFunc) (exec):  {} 0.902665376663208
+ PartitionV2 - CPU - loop + numba (CFunc):  {} 0.9307808876037598
+2.0650260470513927e+26
+ PartitionV2 - CPU - loop + numba (FastMath) (exec):  {} 0.012880802154541016
+ PartitionV2 - CPU - loop + numba (FastMath):  {} 0.24444222450256348
+2.065026047051397e+26
+/usr/local/lib/python3.10/dist-packages/numba/cuda/dispatcher.py:488: NumbaPerformanceWarning: Grid size 16 will likely result in GPU under-utilization due to low occupancy.
+  warn(NumbaPerformanceWarning(msg))
+ PartitionV2 - GPU - loop (exec):  {} 0.009260416030883789
+ PartitionV2 - GPU - loop:  {} 0.27946043014526367
+2.0650260470513924e+26

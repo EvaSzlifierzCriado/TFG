@@ -1,0 +1,38 @@
+Threads per block: 32
+Blocks per grid 8
+ PartitionV2 - CPU - loop:         {} 0.3224644660949707
+24117515194540.49
+ PartitionV2 - CPU - numpy:          {} 0.5560219287872314
+24117515194540.49
+ PartitionV2 - CPU - numba (jit) (exec): {} 0.00891876220703125
+ PartitionV2 - CPU - numba (jit): {} 1.124635934829712
+24117515194540.49
+ PartitionV2 - CPU - loop + numba (Object) (exec):  {} 0.0909566879272461
+ PartitionV2 - CPU - loop + numba (Object):  {} 2.206855058670044
+24117515194540.49
+ PartitionV2 - CPU - loop + numba (njit) (exec):  {} 0.002173900604248047
+ PartitionV2 - CPU - loop + numba (njit):  {} 0.4092247486114502
+24117515194540.49
+ PartitionV2 - CPU - loop + numba (Eager) (exec):  {} 0.0019497871398925781
+ PartitionV2 - CPU - loop + numba (Eager):  {} 0.0021719932556152344
+24117515194540.49
+ PartitionV2 - CPU - loop + numba (Eager, NJit) (exec):  {} 0.0023145675659179688
+ PartitionV2 - CPU - loop + numba (Eager, NJit):  {} 0.0025658607482910156
+24117515194540.49
+ PartitionV2 - CPU - loop + numba (NoGil) (exec):  {} 0.0021696090698242188
+ PartitionV2 - CPU - loop + numba (NoGil):  {} 0.4110543727874756
+24117515194540.49
+ PartitionV2 - CPU - loop + numba (Cache) (exec):  {} 0.002051115036010742
+ PartitionV2 - CPU - loop + numba (Cache):  {} 0.412677526473999
+24117515194540.49
+ PartitionV2 - CPU - loop + numba (CFunc) (exec):  {} 0.09156537055969238
+ PartitionV2 - CPU - loop + numba (CFunc):  {} 0.09438204765319824
+24117515194540.49
+ PartitionV2 - CPU - loop + numba (FastMath) (exec):  {} 0.0011510848999023438
+ PartitionV2 - CPU - loop + numba (FastMath):  {} 0.42359256744384766
+24117515194540.508
+/usr/local/lib/python3.10/dist-packages/numba/cuda/dispatcher.py:488: NumbaPerformanceWarning: Grid size 8 will likely result in GPU under-utilization due to low occupancy.
+  warn(NumbaPerformanceWarning(msg))
+ PartitionV2 - GPU - loop (exec):  {} 0.010721445083618164
+ PartitionV2 - GPU - loop:  {} 0.4697446823120117
+24117515194540.49

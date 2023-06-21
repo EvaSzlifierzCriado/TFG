@@ -1,0 +1,39 @@
+Threads per block: (50, 10)
+Blocks per grid: (10, 50)
+The kernel will be executed up to element 500
+====================================================
+ MatMul - CPU - numpy:          0.4274177551269531
+51.496212665074324
+ MatMul - CPU - numpy + numba (exec): {} 0.3990499973297119
+ MatMul - CPU - numpy + numba: {} 0.6264984607696533
+51.496212665074324
+ MatMul - CPU - loop + numba (jit) (exec):  {} 11.914054870605469
+ MatMul - CPU - loop + numba (jit):  {} 12.563378810882568
+51.49621266507434
+ MatMul - CPU - loop + numba (njit) (exec):  {} 11.743294477462769
+ MatMul - CPU - loop + numba (njit):  {} 12.37164831161499
+51.49621266507434
+ MatMul - CPU - loop + numba (Eager) (exec):  {} 6.462469100952148
+ MatMul - CPU - loop + numba (Eager):  {} 6.844583749771118
+51.49621266507434
+ MatMul - CPU - loop + numba (Eager, NJit) (exec):  {} 5.620646238327026
+ MatMul - CPU - loop + numba (Eager, NJit):  {} 5.809574842453003
+51.49621266507434
+ MatMul - CPU - loop + numba (NoGil) (exec):  {} 6.317225217819214
+ MatMul - CPU - loop + numba (NoGil):  {} 6.886403322219849
+51.49621266507434
+ MatMul - CPU - loop + numba (Cache) (exec):  {} 6.460419178009033
+ MatMul - CPU - loop + numba (Cache):  {} 6.8354973793029785
+51.49621266507434
+ MatMul - CPU - loop + numba (Parallel) (exec):  {} 5.934418439865112
+ MatMul - CPU - loop + numba (Parallel):  {} 7.192011594772339
+51.49621266507434
+ MatMul - CPU - loop + numba (GuVectorize) (exec):  {} 6.475848913192749
+ MatMul - CPU - loop + numba (GuVectorize):  {} 6.6648664474487305
+51.49621266507434
+ MatMul - CPU - loop + numba (FastMath) (exec):  {} 5.532343626022339
+ MatMul - CPU - loop + numba (FastMath):  {} 5.893744230270386
+51.49621266507434
+ MatMul - GPU - loop + numba (exec):  {} 0.0019495487213134766
+ MatMul - GPU - loop + numba:  {} 0.13581109046936035
+51.49621266507434

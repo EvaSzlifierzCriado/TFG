@@ -1,0 +1,47 @@
+Threads per block: (20, 20)
+Blocks per grid: (10, 10)
+The kernel will be executed up to element 200
+====================================================
+ MatMul - CPU - loop:           118.3205509185791
+-36.45804491007914
+ MatMul - CPU - numpy:          0.01796102523803711
+-36.45804491007914
+ MatMul - CPU - numpy + numba (exec): {} 0.01558065414428711
+ MatMul - CPU - numpy + numba: {} 0.16605544090270996
+-36.45804491007914
+ MatMul - CPU - loop + numba (jit) (exec):  {} 0.32174205780029297
+ MatMul - CPU - loop + numba (jit):  {} 0.5468003749847412
+-36.45804491007914
+ MatMul - CPU - loop + numba (Object) (exec):  {} 94.931236743927
+ MatMul - CPU - loop + numba (Object):  {} 98.45346546173096
+-36.45804491007914
+ MatMul - CPU - loop + numba (njit) (exec):  {} 0.3365328311920166
+ MatMul - CPU - loop + numba (njit):  {} 0.5231821537017822
+-36.45804491007914
+ MatMul - CPU - loop + numba (Eager) (exec):  {} 0.3324129581451416
+ MatMul - CPU - loop + numba (Eager):  {} 0.3455519676208496
+-36.45804491007914
+ MatMul - CPU - loop + numba (Eager, NJit) (exec):  {} 0.34087133407592773
+ MatMul - CPU - loop + numba (Eager, NJit):  {} 0.3545985221862793
+-36.45804491007914
+ MatMul - CPU - loop + numba (NoGil) (exec):  {} 0.32689881324768066
+ MatMul - CPU - loop + numba (NoGil):  {} 0.5127918720245361
+-36.45804491007914
+ MatMul - CPU - loop + numba (Cache) (exec):  {} 0.3311641216278076
+ MatMul - CPU - loop + numba (Cache):  {} 0.5151617527008057
+-36.45804491007914
+ MatMul - CPU - loop + numba (Parallel) (exec):  {} 0.41870737075805664
+ MatMul - CPU - loop + numba (Parallel):  {} 1.356734037399292
+-36.45804491007914
+ MatMul - CPU - loop + numba (GuVectorize) (exec):  {} 0.32982945442199707
+ MatMul - CPU - loop + numba (GuVectorize):  {} 0.34155750274658203
+-36.45804491007914
+ MatMul - CPU - loop + numba (CFunc) (exec):  {} 96.94345116615295
+ MatMul - CPU - loop + numba (CFunc):  {} 99.92113399505615
+-36.45804491007914
+ MatMul - CPU - loop + numba (FastMath) (exec):  {} 0.3268156051635742
+ MatMul - CPU - loop + numba (FastMath):  {} 0.5059401988983154
+-36.45804491007914
+ MatMul - GPU - loop + numba (exec):  {} 0.0023925304412841797
+ MatMul - GPU - loop + numba:  {} 0.15659880638122559
+-36.45804491007914

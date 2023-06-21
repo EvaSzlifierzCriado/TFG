@@ -1,0 +1,45 @@
+The kernel will be executed up to element 256
+Threads per block: (16, 16)
+Blocks per grid: (16, 16)
+The kernel will be executed up to element 256
+====================================================
+ Convol - CPU - loop:          {} 205.62052869796753
+6.006732420393859
+ Convol - CPU - numpy:         {} 12.42215347290039
+6.006732420393861
+ Convol - CPU - numpy + numba (exec): {} 1.419398546218872
+ Convol - CPU - numpy + numba: {} 1.8769423961639404
+6.006732420393859
+ Convol - CPU - loop + numba (jit) (exec):  {} 1.0183672904968262
+ Convol - CPU - loop + numba (jit):  {} 1.2577073574066162
+6.006732420393859
+ Convol - CPU - loop + numba (Object) (exec):  {} 188.9669599533081
+ Convol - CPU - loop + numba (Object):  {} 197.1430950164795
+6.006732420393859
+ Convol - CPU - loop + numba (njit) (exec):  {} 1.0056312084197998
+ Convol - CPU - loop + numba (njit):  {} 1.2353477478027344
+6.006732420393859
+ Convol - CPU - loop + numba (Eager) (exec):  {} 0.7139172554016113
+ Convol - CPU - loop + numba (Eager):  {} 0.7434659004211426
+6.006732420393859
+ Convol - CPU - loop + numba (Eager, NJit) (exec):  {} 0.7068731784820557
+ Convol - CPU - loop + numba (Eager, NJit):  {} 0.7319769859313965
+6.006732420393859
+ Convol - CPU - loop + numba (NoGil) (exec):  {} 1.009253978729248
+ Convol - CPU - loop + numba (NoGil):  {} 1.2520575523376465
+6.006732420393859
+ Convol - CPU - loop + numba (Cache) (exec):  {} 1.377152919769287
+ Convol - CPU - loop + numba (Cache):  {} 1.6154582500457764
+6.006732420393859
+ Convol - CPU - loop + numba (Parallel) (exec):  {} 1.201413631439209
+ Convol - CPU - loop + numba (Parallel):  {} 2.844315528869629
+6.006732420393859
+ Convol - CPU - loop + numba (CFunc) (exec):  {} 190.36396098136902
+ Convol - CPU - loop + numba (CFunc):  {} 196.1337447166443
+6.006732420393859
+ Convol - CPU - loop + numba (FastMath) (exec):  {} 1.0454349517822266
+ Convol - CPU - loop + numba (FastMath):  {} 1.5952141284942627
+6.006732420393856
+ Convol - GPU - loop + numba (exec):  {} 0.0019268989562988281
+ Convol - GPU - loop + numba:  {} 0.20798110961914062
+6.006732420393856

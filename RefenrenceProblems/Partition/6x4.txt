@@ -1,0 +1,42 @@
+====================================================
+Threads per block: 16
+Blocks per grid: 4
+ Partition - CPU - loop:         {} 1.3725364208221436
+64.00058576992384
+ Partition - CPU - numpy:          {} 0.5263957977294922
+64.00058576992384
+ Partition - CPU - numpy + numba (exec):  {} 0.015350341796875
+ Partition - CPU - numpy + numba:  {} 2.334883451461792
+64.00058576992384
+ Partition - CPU - numba (jit) (exec): {} 0.013123750686645508
+ Partition - CPU - numba (jit): {} 1.1009159088134766
+64.00058576992384
+Partition - CPU - loop + numba (Object) (exec):  {} 0.5307879447937012
+ Partition - CPU - loop + numba (Object):  {} 2.242877244949341
+64.00058576992384
+ Partition - CPU - loop + numba (njit) (exec):  {} 0.01251840591430664
+ Partition - CPU - loop + numba (njit):  {} 0.46857523918151855
+64.00058576992384
+ Partition - CPU - loop + numba (Eager) (exec):  {} 43.271005630493164
+ Partition - CPU - loop + numba (Eager):  {} 44.90817403793335
+nan
+ Partition - CPU - loop + numba (Eager, NJit) (exec):  {} 0.00764775276184082
+ Partition - CPU - loop + numba (Eager, NJit):  {} 0.008030891418457031
+64.00058576992384
+ Partition - CPU - loop + numba (NoGil) (exec):  {} 0.007608175277709961
+ Partition - CPU - loop + numba (NoGil):  {} 0.3967773914337158
+64.00058576992384
+ Partition - CPU - loop + numba (Cache) (exec):  {} 0.007769584655761719
+ Partition - CPU - loop + numba (Cache):  {} 0.27686166763305664
+64.00058576992384
+ Partition - CPU - loop + numba (CFunc) (exec):  {} 0.265488862991333
+ Partition - CPU - loop + numba (CFunc):  {} 0.27646446228027344
+64.00058576992384
+ Partition - CPU - loop + numba (FastMath) (exec):  {} 0.008313417434692383
+ Partition - CPU - loop + numba (FastMath):  {} 0.3019273281097412
+64.00058576992384
+/usr/local/lib/python3.10/dist-packages/numba/cuda/dispatcher.py:488: NumbaPerformanceWarning: Grid size 4 will likely result in GPU under-utilization due to low occupancy.
+  warn(NumbaPerformanceWarning(msg))
+ Partition - GPU - loop (exec):  {} 0.005366802215576172
+ Partition - GPU - loop:  {} 0.9239683151245117
+64.00045949602656
