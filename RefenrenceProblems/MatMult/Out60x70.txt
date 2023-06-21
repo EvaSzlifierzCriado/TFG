@@ -1,0 +1,52 @@
+The kernel will be executed up to element 60
+====================================================
+ MatMul - CPU - loop:           1.823303461074829
+-0.7697155738192389
+ MatMul - CPU - numpy:          0.0008339881896972656
+-0.7697155738192392
+ MatMul - CPU - numpy + numba (exec): {} 0.0007357597351074219
+ MatMul - CPU - numpy + numba: {} 0.24370646476745605
+-0.7697155738192392
+ MatMul - CPU - loop + numba (jit) (exec):  {} 0.005118608474731445
+ MatMul - CPU - loop + numba (jit):  {} 0.5503842830657959
+-0.7697155738192389
+ MatMul - CPU - loop + numba (Object) (exec):  {} 0.9603919982910156
+ MatMul - CPU - loop + numba (Object):  {} 2.4500372409820557
+-0.7697155738192389
+ MatMul - CPU - loop + numba (njit) (exec):  {} 0.0029778480529785156
+ MatMul - CPU - loop + numba (njit):  {} 0.19653677940368652
+-0.7697155738192389
+ MatMul - CPU - loop + numba (Eager) (exec):  {} 0.0034313201904296875
+ MatMul - CPU - loop + numba (Eager):  {} 0.0037119388580322266
+-0.7697155738192389
+ MatMul - CPU - loop + numba (Eager, NJit) (exec):  {} 0.004181861877441406
+ MatMul - CPU - loop + numba (Eager, NJit):  {} 0.0044138431549072266
+-0.7697155738192389
+ MatMul - CPU - loop + numba (NoGil) (exec):  {} 0.003108978271484375
+ MatMul - CPU - loop + numba (NoGil):  {} 0.18685126304626465
+-0.7697155738192389
+ MatMul - CPU - loop + numba (Cache) (exec):  {} 0.0029687881469726562
+ MatMul - CPU - loop + numba (Cache):  {} 0.20135140419006348
+-0.7697155738192389
+ MatMul - CPU - loop + numba (Parallel) (exec):  {} 0.0065577030181884766
+ MatMul - CPU - loop + numba (Parallel):  {} 1.2213184833526611
+-0.7697155738192389
+ MatMul - CPU - loop + numba (GuVectorize) (exec):  {} 0.004923105239868164
+ MatMul - CPU - loop + numba (GuVectorize):  {} 0.005358457565307617
+-0.7697155738192389
+ MatMul - CPU - loop + numba (CFunc) (exec):  {} 0.9314169883728027
+ MatMul - CPU - loop + numba (CFunc):  {} 0.9618849754333496
+-0.7697155738192389
+ MatMul - CPU - loop + numba (FastMath) (exec):  {} 0.0029098987579345703
+ MatMul - CPU - loop + numba (FastMath):  {} 0.1957077980041504
+-0.7697155738192392
+/usr/local/lib/python3.10/dist-packages/numba/cuda/dispatcher.py:488: NumbaPerformanceWarning: Grid size 4 will likely result in GPU under-utilization due to low occupancy.
+  warn(NumbaPerformanceWarning(msg))
+/usr/local/lib/python3.10/dist-packages/numba/cuda/dispatcher.py:488: NumbaPerformanceWarning: Grid size 4 will likely result in GPU under-utilization due to low occupancy.
+  warn(NumbaPerformanceWarning(msg))
+ MatMul - GPU - loop + numba (exec):  {} 0.002570629119873047
+ MatMul - GPU - loop + numba:  {} 0.16681957244873047
+-0.7697155738192392
+ MatMul - GPU - Shared Memory v3 (exec):  {} 0.002324819564819336
+ MatMul - GPU - Shared Memory v3:  {} 0.1900477409362793
+-0.7697155475616455

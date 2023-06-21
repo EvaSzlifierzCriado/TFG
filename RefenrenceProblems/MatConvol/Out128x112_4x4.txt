@@ -1,0 +1,47 @@
+The kernel will be executed up to element 128
+Threads per block: (16, 16)
+Blocks per grid: (8, 7)
+The kernel will be executed up to element 128
+====================================================
+ Convol - CPU - loop:          {} 6.450216293334961
+-5.461549502817231
+ Convol - CPU - numpy:         {} 6.353399991989136
+-5.461549502817231
+ Convol - CPU - numpy + numba (exec): {} 0.08915328979492188
+ Convol - CPU - numpy + numba: {} 0.6390938758850098
+-5.461549502817231
+ Convol - CPU - loop + numba (jit) (exec):  {} 0.03357744216918945
+ Convol - CPU - loop + numba (jit):  {} 0.34570932388305664
+-5.461549502817231
+ Convol - CPU - loop + numba (Object) (exec):  {} 7.2940897941589355
+ Convol - CPU - loop + numba (Object):  {} 9.711668491363525
+-5.461549502817231
+ Convol - CPU - loop + numba (njit) (exec):  {} 0.033661603927612305
+ Convol - CPU - loop + numba (njit):  {} 0.35953378677368164
+-5.461549502817231
+ Convol - CPU - loop + numba (Eager) (exec):  {} 0.035808563232421875
+ Convol - CPU - loop + numba (Eager):  {} 0.03695178031921387
+-5.461549502817231
+ Convol - CPU - loop + numba (Eager, NJit) (exec):  {} 0.0337071418762207
+ Convol - CPU - loop + numba (Eager, NJit):  {} 0.03483438491821289
+-5.461549502817231
+ Convol - CPU - loop + numba (NoGil) (exec):  {} 0.033515214920043945
+ Convol - CPU - loop + numba (NoGil):  {} 0.3619520664215088
+-5.461549502817231
+ Convol - CPU - loop + numba (Cache) (exec):  {} 0.05564141273498535
+ Convol - CPU - loop + numba (Cache):  {} 0.45147013664245605
+-5.461549502817231
+ Convol - CPU - loop + numba (Parallel) (exec):  {} 0.060118913650512695
+ Convol - CPU - loop + numba (Parallel):  {} 1.6827027797698975
+-5.461549502817231
+ Convol - CPU - loop + numba (CFunc) (exec):  {} 5.589405059814453
+ Convol - CPU - loop + numba (CFunc):  {} 5.766296148300171
+-5.461549502817231
+ Convol - CPU - loop + numba (FastMath) (exec):  {} 0.03435921669006348
+ Convol - CPU - loop + numba (FastMath):  {} 0.4001481533050537
+-5.461549502817231
+/usr/local/lib/python3.10/dist-packages/numba/cuda/dispatcher.py:488: NumbaPerformanceWarning: Grid size 56 will likely result in GPU under-utilization due to low occupancy.
+  warn(NumbaPerformanceWarning(msg))
+ Convol - GPU - loop + numba (exec):  {} 0.0107269287109375
+ Convol - GPU - loop + numba:  {} 0.4375894069671631
+-5.461549502817231

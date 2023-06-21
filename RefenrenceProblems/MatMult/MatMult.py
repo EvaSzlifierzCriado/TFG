@@ -4,19 +4,20 @@ import numpy as np
 import numba
 from numba import jit, cuda, float64, guvectorize, cfunc
 from numpy import float32
+import matplotlib.pyplot as plt
 
 # Decorators:
 #     + jit:
-#           La recomendada. Con esta opcion Numba decide 
+#           La recomendada. Con esta opcion Numba decide
 #           Cuando y como optimizar
 #     + @jit in no python (njit)
-#     + @jit object mode 
+#     + @jit object mode
 #     + nogil = true
 #     + cache = true
 #     - vectorize
 #     + @guvectorize
 #     - @stencil:
-#           No es util, se usa cuando queremos 
+#           No es util, se usa cuando queremos
 #           updatear cada elemento de un array con algun
 #           pattern fijado llamado stencil kernel.
 #     - @jitclass:
@@ -25,18 +26,18 @@ from numpy import float32
 #     - @overload:
 #           Es util cuando tenemos numpy + numba y numpy no
 #           soporta el tipo. Por ejemplo, con integer arrays
-#           usariamos overload + numpy ya que numpy por si 
+#           usariamos overload + numpy ya que numpy por si
 #           solo no lo soporta.
 
 # Extra options:
-#     + parallel 
+#     + parallel
 #     + fastmath = True
 #     + Eager compilation
-#           Especificarle de que tipos son los 
+#           Especificarle de que tipos son los
 #           parametros para tener mas control.
 #     - @generated_jit:
-#           Es utiluando hay diferentes implementaciones 
-#           dependiendodel tipo de datos que se pasan a 
+#           Es utiluando hay diferentes implementaciones
+#           dependiendodel tipo de datos que se pasan a
 #           la funcion.
 #     - jit_module:
 #           Es util cuando tenemos varias funciones que
@@ -61,10 +62,10 @@ def CPU_loop_MatMul(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
-# 2. (CPU) Loop + Numba multiplication 
+# 2. (CPU) Loop + Numba multiplication
 @jit
 def CPU_loop_numba_MatMul(A,B):
     NrA, NcA = A.shape
@@ -79,7 +80,7 @@ def CPU_loop_numba_MatMul(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
 
@@ -97,7 +98,7 @@ def CPU_loop_numba_MatMulObject(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
 
@@ -115,7 +116,7 @@ def CPU_loop_numba_MatMulNJit(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
 
@@ -133,7 +134,7 @@ def CPU_loop_numba_MatMulEager(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
 
@@ -151,7 +152,7 @@ def CPU_loop_numba_MatMulEagerNJit(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
 
@@ -169,7 +170,7 @@ def CPU_loop_numba_MatMulNoGil(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
 
@@ -187,7 +188,7 @@ def CPU_loop_numba_MatMulCache(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
 
@@ -205,7 +206,7 @@ def CPU_loop_numba_MatMulParallel(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
 @guvectorize([(float64[:,:], float64[:,:], float64[:,:])], '(n,m),(m,p)->(n,p)', nopython=True)
@@ -216,7 +217,7 @@ def CPU_loop_numba_MatMulGuVectorize(A, B, C):
             for k in range(A.shape[1]):
                 s += A[i,k] * B[k,j]
             C[i,j] = s
-    
+
 @cfunc("float64[:,:](float64[:,:], float64[:,:])")
 def CPU_loop_numba_MatMulCFunc(A,B):
     NrA, NcA = A.shape
@@ -231,7 +232,7 @@ def CPU_loop_numba_MatMulCFunc(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
 @jit(fastmath = True)
@@ -248,7 +249,7 @@ def CPU_loop_numba_MatMulFastMath(A,B):
             for k in range(NcA):
                 c += A[i,k] * B[k,j]
             C[i,j] = c
-    
+
     return C
 
 
@@ -261,52 +262,53 @@ def CPU_numpy_MatMul(A,B):
 def CPU_numpy_numba_MatMul(A,B):  ### Identical to CPU_numpy_MatMul but for the decorator
     return np.dot(A,B)
 
-# 5. (GPU) loop multiplication 
+# 5. (GPU) loop multiplication
 @cuda.jit
 def GPU_loop_numba_matMult(A, B, C):
   i, j = cuda.grid(2)
   if i < C.shape[0] and j < C.shape[1]:
-    tmp = 0. 
+    tmp = 0.
     for k in range(A.shape[1]):
       tmp += A[i, k] * B[k, j]
     C[i, j] = tmp
-
-@guvectorize(['void(float32[:,:], float32[:,:], float32[:,:])'],
-             '(m,n),(n,p)->(m,p)', target='cuda')
-def GPU_loop_numba_matMultGuVectorize(A, B, C):
-  i, j = cuda.grid(2)
-  if i < C.shape[0] and j < C.shape[1]:
-    tmp = 0. 
-    for k in range(A.shape[1]):
-      tmp += A[i, k] * B[k, j]
-    C[i, j] = tmp
-
 
 ## 6. (GPU) loop + shared memory multiplication (reduces de number of times that each number is send to the GPU)
-# Matrix has to be  squared!!
-TPB = 16
-
 @cuda.jit
-def GPU_loop_matMult_sharedMemory(A, B, C):
+def GPU_loop_matMult_sharedMemoryV3(A, B, C):
+  TPB = M
+
+  # Create a shared memory matrix for each block
   sA = cuda.shared.array(shape=(TPB, TPB), dtype=float32)
   sB = cuda.shared.array(shape=(TPB, TPB), dtype=float32)
+
+  # Thread position in the grid
   x, y = cuda.grid(2)
 
+  # Thread position in the block
   tx = cuda.threadIdx.x
   ty = cuda.threadIdx.y
-  bpg = cuda.gridDim.x 
 
+  ## Number of bloocks per grid
+  #bpg = cuda.gridDim.x # = 3
+
+  # Checking thread inside the grid
   if x >= C.shape[0] and y >= C.shape[1]:
     return
+
+  sA[tx, ty] = A[x, ty]  # A[x, ty + cuda.blockIdx.y * TPB]
+  sB[tx, ty] = B[tx, y]  # B[tx + cuda.blockIdx.x * TPB, y]
+
+  # 1st. Syncronize threads of the block after loading the data into the shared memory
+  cuda.syncthreads()
+
   tmp = 0.
-  for i in range(bpg):
-    sA[tx, ty] = A[x, ty + i * TPB]
-    sB[tx, ty] = B[tx + i * TPB, y]
-    cuda.syncthreads()
-    for j in range(TPB):
+  for j in range(TPB):
       tmp += sA[tx, j] * sB[j, ty]
-      cuda.syncthreads()
-    C[x,y] = tmp
+
+  # 2nd. Syncronize threads after calculation
+  #cuda.syncthreads()
+
+  C[x,y] = tmp
 
 # ## 7. (GPU) CuPy multiplication
 # def GPU_CuPy_matMult(A, B):
@@ -324,8 +326,8 @@ def GPU_loop_matMult_sharedMemory(A, B, C):
 # Common:
 R = 30
 
-N = 128
-M = 128
+N = 10
+M = 5
 
 # MatMult and MatConvol vars:
 A = np.random.randn(N,M)  #.astype(np.float32)
@@ -339,128 +341,278 @@ NrB, NcB = B.shape
 assert NcA == NrB
 
 #################
-threadsperblock = (16, 16) # each block will contain 16×16 threads, typically 128 - 512 threads/bl
+threadsperblock = (M, M) # each block will contain 16×16 threads, typically 128 - 512 threads/bl
 blockspergrid_x = int(np.ceil(C.shape[0] / threadsperblock[0]))
 blockspergrid_y = int(np.ceil(C.shape[1] / threadsperblock[1]))
 blockspergrid = (blockspergrid_x, blockspergrid_y)
-print(blockspergrid)
+
 print(f"The kernel will be executed up to element {threadsperblock[0]*blockspergrid_x}")
+
+
+########################################
+######## Plot vars: ####################
+########################################
+
+x_comp = ["CPU - numpy + numba", "CPU - loop + numba (Jit)",
+     "CPU - loop + numba (Object)", "CPU - loop + numba (NJit)", 
+     "CPU - loop + numba (Eager)", "CPU - loop + numba (Eager, NJit)",
+     "CPU - loop + numba (NoGil)", "CPU - loop + numba (Cache)",
+     "CPU - loop + numba (Parallel)", "CPU - loop + numba (GuVectorize)",
+     "CPU - loop + numba (CFunc)", "CPU - loop + numba (FastMath)",
+     "GPU - loop + numba", "GPU - Shared Memory"]
+x_exec = ["CPU - Loop", "CPU - numpy", "CPU - numpy + numba", "CPU - loop + numba (Jit)",
+     "CPU - loop + numba (Object)", "CPU - loop + numba (NJit)", 
+     "CPU - loop + numba (Eager)", "CPU - loop + numba (Eager, NJit)",
+     "CPU - loop + numba (NoGil)", "CPU - loop + numba (Cache)",
+     "CPU - loop + numba (Parallel)", "CPU - loop + numba (GuVectorize)",
+     "CPU - loop + numba (CFunc)", "CPU - loop + numba (FastMath)",
+     "GPU - loop + numba", "GPU - Shared Memory"]
+y_comp = []
+y_exec = []
+
 
 ########################################
 ### Matrix multiplication
 
 print("====================================================")
 
-# CPU - numpy
-tic = time()
-for i in range(R):
-    C = CPU_numpy_MatMul(A,B)
-print(" MatMul - CPU - numpy:         {}".format(time() - tic))
-print(C[0,0])
-
-# CPU - numpy + numba
-C = CPU_numpy_numba_MatMul(A,B)  ### Compilation
-tic = time()
-for i in range(R):
-    C = CPU_numpy_numba_MatMul(A,B)
-print(" MatMul - CPU - numpy + numba: {}".format(time() - tic))
-print(C[0,0])
-
 # CPU - loop
 tic = time()
 for i in range(R):
     C = CPU_loop_MatMul(A,B)
-print(" MatMul - CPU - loop:          {}".format(time() - tic))
+
+exec = time() - tic
+y_exec.append(exec)
+
+print(" MatMul - CPU - loop:          ", exec)
+print(C[0,0])
+
+# CPU - numpy
+tic = time()
+for i in range(R):
+    C = CPU_numpy_MatMul(A,B)
+
+exec = time() - tic
+y_exec.append(exec)
+
+print(" MatMul - CPU - numpy:         ", exec)
+print(C[0,0])
+
+# CPU - numpy + numba
+tic = time()
+C = CPU_numpy_numba_MatMul(A,B)  ### Compilation
+tic2 = time()
+for i in range(R):
+    C = CPU_numpy_numba_MatMul(A,B)
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+print(" MatMul - CPU - numpy + numba (exec): {}", exec)
+print(" MatMul - CPU - numpy + numba: {}", comp)
 print(C[0,0])
 
 ################ Numba ######################
 
 # CPU - loop + numba (jit)
-C = CPU_loop_numba_MatMul(A,B)   ### Compilation
 tic = time()
+C = CPU_loop_numba_MatMul(A,B)   ### Compilation
+tic2 = time()
 for i in range(R):
     C = CPU_loop_numba_MatMul(A,B)
-print(" MatMul - CPU - loop + numba (jit):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (jit) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (jit):  {}", comp)
 print(C[0,0])
 
 # CPU - loop + numba (Object Mode)
-C = CPU_loop_numba_MatMulObject(A,B)   ### Compilation
 tic = time()
+C = CPU_loop_numba_MatMulObject(A,B)   ### Compilation
+tic2 = time()
 for i in range(R):
     C = CPU_loop_numba_MatMulObject(A,B)
-print(" MatMul - CPU - loop + numba (Object):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (Object) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (Object):  {}", comp)
 print(C[0,0])
 
 # CPU - loop + numba (njit)
-C = CPU_loop_numba_MatMulNJit(A,B)   ### Compilation
 tic = time()
+C = CPU_loop_numba_MatMulNJit(A,B)   ### Compilation
+tic2 = time()
 for i in range(R):
     C = CPU_loop_numba_MatMulNJit(A,B)
-print(" MatMul - CPU - loop + numba (njit):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (njit) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (njit):  {}", comp)
 print(C[0,0])
 
 # CPU - loop + numba (Eager)
-C = CPU_loop_numba_MatMulEager(A,B)   ### Compilation
 tic = time()
+C = CPU_loop_numba_MatMulEager(A,B)   ### Compilation
+tic2 = time()
 for i in range(R):
     C = CPU_loop_numba_MatMulEager(A,B)
-print(" MatMul - CPU - loop + numba (Eager):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (Eager) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (Eager):  {}", comp)
 print(C[0,0])
 
 # CPU - loop + numba (Eager, NJit)
-C = CPU_loop_numba_MatMulEagerNJit(A,B)   ### Compilation
 tic = time()
+C = CPU_loop_numba_MatMulEagerNJit(A,B)   ### Compilation
+tic2 = time()
 for i in range(R):
     C = CPU_loop_numba_MatMulEagerNJit(A,B)
-print(" MatMul - CPU - loop + numba (Eager, NJit):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (Eager, NJit) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (Eager, NJit):  {}", comp)
 print(C[0,0])
 
 # CPU - loop + numba (NoGil)
-C = CPU_loop_numba_MatMulNoGil(A,B)   ### Compilation
 tic = time()
+C = CPU_loop_numba_MatMulNoGil(A,B)   ### Compilation
+tic2 = time()
 for i in range(R):
     C = CPU_loop_numba_MatMulNoGil(A,B)
-print(" MatMul - CPU - loop + numba (NoGil):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (NoGil) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (NoGil):  {}", comp)
 print(C[0,0])
 
 # CPU - loop + numba (Cache)
-C = CPU_loop_numba_MatMulCache(A,B)   ### Compilation
 tic = time()
+C = CPU_loop_numba_MatMulCache(A,B)   ### Compilation
+tic2 = time()
 for i in range(R):
     C = CPU_loop_numba_MatMulCache(A,B)
-print(" MatMul - CPU - loop + numba (Cache):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (Cache) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (Cache):  {}", comp)
 print(C[0,0])
 
 # CPU - loop + numba (Parallel)
-C = CPU_loop_numba_MatMulParallel(A,B)   ### Compilation
 tic = time()
+C = CPU_loop_numba_MatMulParallel(A,B)   ### Compilation
+tic2 = time()
 for i in range(R):
     C = CPU_loop_numba_MatMulParallel(A,B)
-print(" MatMul - CPU - loop + numba (Parallel):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (Parallel) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (Parallel):  {}", comp)
 print(C[0,0])
 
 # CPU - loop + numba (GuVectorize)
-CPU_loop_numba_MatMulGuVectorize(A,B,C)   ### Compilation
 tic = time()
+CPU_loop_numba_MatMulGuVectorize(A,B,C)   ### Compilation
+tic2 = time()
 for i in range(R):
     CPU_loop_numba_MatMulGuVectorize(A,B,C)
-print(" MatMul - CPU - loop + numba (GuVectorize):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (GuVectorize) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (GuVectorize):  {}", comp)
 print(C[0,0])
 
 # CPU - loop + numba (CFunc)
-C = CPU_loop_numba_MatMulCFunc(A,B)   ### Compilation
 tic = time()
+C = CPU_loop_numba_MatMulCFunc(A,B)   ### Compilation
+tic2 = time()
 for i in range(R):
     C = CPU_loop_numba_MatMulCFunc(A,B)
-print(" MatMul - CPU - loop + numba (CFunc):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (CFunc) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (CFunc):  {}", comp)
 print(C[0,0])
 
 # CPU - loop + numba (FastMath)
-C = CPU_loop_numba_MatMulFastMath(A,B)   ### Compilation
 tic = time()
+C = CPU_loop_numba_MatMulFastMath(A,B)   ### Compilation
+tic2 = time()
 for i in range(R):
     C = CPU_loop_numba_MatMulFastMath(A,B)
-print(" MatMul - CPU - loop + numba (FastMath):  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - CPU - loop + numba (FastMath) (exec):  {}", exec)
+print(" MatMul - CPU - loop + numba (FastMath):  {}", comp)
 print(C[0,0])
 
 
@@ -470,76 +622,78 @@ print(C[0,0])
 cA = cuda.to_device(A)
 cB = cuda.to_device(B)
 cC = cuda.to_device(np.zeros([A.shape[0],B.shape[1]]))
-
-GPU_loop_numba_matMult[blockspergrid, threadsperblock](cA,cB,cC)   ### Compilation
 tic = time()
+GPU_loop_numba_matMult[blockspergrid, threadsperblock](cA,cB,cC)   ### Compilation
+tic2 = time()
 for i in range(R):
     GPU_loop_numba_matMult[blockspergrid, threadsperblock](cA,cB,cC)
-print(" MatMul - GPU - loop + numba:  {}".format(time() - tic))
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+
+print(" MatMul - GPU - loop + numba (exec):  {}", exec)
+print(" MatMul - GPU - loop + numba:  {}", comp)
 print(cC[0,0])
-
-# cC = cuda.to_device(np.zeros([A.shape[0],B.shape[1]]))
-# GPU_loop_numba_matMultGuVectorize.max_blocksize = 32  # limits to 32 threads per block
-
-# GPU_loop_numba_matMultGuVectorize[blockspergrid, threadsperblock](cA,cB,cC)   ### Compilation
-# tic = time()
-# for i in range(R):
-#     GPU_loop_numba_matMultGuVectorize[blockspergrid, threadsperblock](cA,cB,cC)
-# print(" MatMul - GPU - loop + numba (GuVectorize):  {}".format(time() - tic))
-# print(cC[0,0])
 
 # GPU - Shared Memory
 cA = cuda.to_device(A)
 cB = cuda.to_device(B)
 cC = cuda.to_device(np.zeros([A.shape[0],B.shape[1]]))
-GPU_loop_matMult_sharedMemory[blockspergrid, threadsperblock](cA,cB,cC)
 tic = time()
+GPU_loop_matMult_sharedMemoryV3[blockspergrid, threadsperblock](cA,cB,cC)
+tic2 = time()
 for i in range(R):
-    GPU_loop_matMult_sharedMemory[blockspergrid, threadsperblock](cA,cB,cC)
-print(" MatMul - GPU - Shared Memory:  {}".format(time() - tic))
+    GPU_loop_matMult_sharedMemoryV3[blockspergrid, threadsperblock](cA,cB,cC)
+
+exec = time() - tic2 
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+print(" MatMul - GPU - Shared Memory v3 (exec):  {}", exec)
+print(" MatMul - GPU - Shared Memory v3:  {}", comp)
 print(cC[0,0])
 
-# # GPU - Cupy
-# tic = time()
-# for i in range(R):
-#     C = GPU_CuPy_matMult(A, B)
-# print(" MatMul - GPU - Cupy1:  {}".format(time() - tic))
-# print(C[0,0])
+# Plot printing:
+
+# Execution time plot:
+
+# Convert the results to miliseconds:
+for i in y_exec:
+  i = i*1000
+
+plt.figure(figsize=(10, 6))
+plt.vlines(x_exec, 0, y_exec, linestyle="dashed")
+plt.scatter(x_exec, y_exec)
+plt.xticks(x_exec, rotation=45, ha='right')
+plt.title("Tiempos de ejecución - Multiplicación de matrices", pad=20)
+plt.yscale('log')
+plt.ylabel("Tiempo en ms", labelpad=20)
+plt.xlabel("Implementación", labelpad=10)
+plt.show()
+
+# Execution and compilation time plot:
+
+# Convert the results to miliseconds:
+for i in y_comp:
+  i = i*1000
+
+plt.figure(figsize=(10, 6))
+plt.vlines(x_comp, 0, y_comp, linestyle="dashed")
+plt.scatter(x_comp, y_comp)
+plt.xticks(x_comp, rotation=45, ha='right')
+plt.title("Tiempos de compilación y ejecución - Multiplicación de matrices", pad=20)
+plt.yscale('log')
+plt.ylabel("Tiempo en ms", labelpad=20)
+plt.xlabel("Implementación", labelpad=10)
+plt.show()
+
+print(len(y_exec))
+print(len(y_comp))
 
 
-#################### TEST RESULTS ####################
-
-
-# (8, 8)
-# The kernel will be executed up to element 128
-# ====================================================
-#  MatMul - CPU - numpy:         0.019099950790405273
-# -3.545629036135979
-#  MatMul - CPU - numpy + numba: 0.02588510513305664
-# -3.545629036135979
-#  MatMul - CPU - loop:          31.282602787017822
-# -3.5456290361359795
-#  MatMul - CPU - loop + numba (jit):  0.09103178977966309
-# -3.5456290361359795
-#  MatMul - CPU - loop + numba (Object):  23.346181869506836
-# -3.5456290361359795
-#  MatMul - CPU - loop + numba (njit):  0.08579444885253906
-# -3.5456290361359795
-#  MatMul - CPU - loop + numba (Eager):  0.07909131050109863
-# -3.5456290361359795
-#  MatMul - CPU - loop + numba (NoGil):  0.07879400253295898
-# -3.5456290361359795
-#  MatMul - CPU - loop + numba (Cache):  0.08299708366394043
-# -3.5456290361359795
-#  MatMul - CPU - loop + numba (Parallel):  0.10923480987548828
-# -3.5456290361359795
-#  MatMul - CPU - loop + numba (GuVectorize):  0.09578061103820801
-# -3.5456290361359795
-#  MatMul - CPU - loop + numba (CFunc):  24.679866313934326
-# -3.5456290361359795
-#  MatMul - CPU - loop + numba (FastMath):  0.08434128761291504
-# -3.545629036135979
-#  MatMul - GPU - loop + numba:  0.0022399425506591797
-# -3.545629036135979
-#  MatMul - GPU - Shared Memory:  0.001954317092895508
-# -3.5456292890849

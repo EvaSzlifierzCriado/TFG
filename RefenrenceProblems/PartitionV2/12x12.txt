@@ -1,0 +1,36 @@
+Threads per block: 16
+Blocks per grid 256
+ PartitionV2 - CPU - loop:         {} 23.573583602905273
+1.2918197319182993e+34
+ PartitionV2 - CPU - numpy:          {} 14.36101508140564
+1.2918197319182993e+34
+ PartitionV2 - CPU - numba (jit) (exec): {} 0.10075736045837402
+ PartitionV2 - CPU - numba (jit): {} 0.4362480640411377
+1.2918197319182993e+34
+ PartitionV2 - CPU - loop + numba (Object) (exec):  {} 4.559426546096802
+ PartitionV2 - CPU - loop + numba (Object):  {} 5.80388879776001
+1.2918197319182993e+34
+ PartitionV2 - CPU - loop + numba (njit) (exec):  {} 0.10120129585266113
+ PartitionV2 - CPU - loop + numba (njit):  {} 0.3461496829986572
+1.2918197319182993e+34
+ PartitionV2 - CPU - loop + numba (Eager) (exec):  {} 0.11347627639770508
+ PartitionV2 - CPU - loop + numba (Eager):  {} 0.11749768257141113
+1.2918197319182993e+34
+ PartitionV2 - CPU - loop + numba (Eager, NJit) (exec):  {} 0.11469602584838867
+ PartitionV2 - CPU - loop + numba (Eager, NJit):  {} 0.11848688125610352
+1.2918197319182993e+34
+ PartitionV2 - CPU - loop + numba (NoGil) (exec):  {} 0.16233563423156738
+ PartitionV2 - CPU - loop + numba (NoGil):  {} 0.4299306869506836
+1.2918197319182993e+34
+ PartitionV2 - CPU - loop + numba (Cache) (exec):  {} 0.1831674575805664
+ PartitionV2 - CPU - loop + numba (Cache):  {} 0.5847859382629395
+1.2918197319182993e+34
+ PartitionV2 - CPU - loop + numba (CFunc) (exec):  {} 5.0075812339782715
+ PartitionV2 - CPU - loop + numba (CFunc):  {} 5.301104784011841
+1.2918197319182993e+34
+ PartitionV2 - CPU - loop + numba (FastMath) (exec):  {} 0.08101797103881836
+ PartitionV2 - CPU - loop + numba (FastMath):  {} 0.31737446784973145
+1.2918197319183023e+34
+ PartitionV2 - GPU - loop (exec):  {} 0.02007269859313965
+ PartitionV2 - GPU - loop:  {} 0.31183815002441406
+1.291819731918299e+34

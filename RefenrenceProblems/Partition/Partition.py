@@ -4,6 +4,7 @@ import numba.cuda as cuda
 from time import time
 import numba
 from numba import jit, cuda, float64, guvectorize, cfunc
+import matplotlib.pyplot as plt
 
 # Scalar product of two arrays
 def CPU_loop_ArrayMul(A,B):
@@ -19,7 +20,7 @@ def CPU_loop_ArrayMul(A,B):
     return(res)
 
 # Multiplies array A per matrix B
-def CPU_loop_ArrayMatMul(A,B): 
+def CPU_loop_ArrayMatMul(A,B):
 
     NcA = len(A)
     NrB = len(B)
@@ -52,7 +53,7 @@ def CPU_loop_ArrayMulJit(A,B):
 
 # Multiplies array A per matrix B with jit decorator
 @jit
-def CPU_loop_ArrayMatMulJit(A,B): 
+def CPU_loop_ArrayMatMulJit(A,B):
 
     NcA = len(A)
     NrB = len(B)
@@ -281,7 +282,7 @@ def GPU_loop_Partition(W, b, c, x, h, result):
 #     blocks_per_grid = 4
 #     partition_kernel[blocks_per_grid, threads_per_block](W, b, c, x, h, result)
 #     return np.sum(result)
-         
+
 ##########################################################################
 ################################## MAIN ##################################
 ##########################################################################
@@ -291,8 +292,8 @@ def GPU_loop_Partition(W, b, c, x, h, result):
 print("====================================================")
 
 # Partition Vars:
-n = 6
-m = 4
+n = 10
+m = 10
 
 R = 30
 
@@ -312,135 +313,244 @@ for i in range(2**m):
     h_i_bin = np.binary_repr(i, m)
     h[i] = [int(j) for j in str(h_i_bin)]
 
+threads_per_block = 64
+blocks_per_grid = 16
+
+print("Threads per block:", threads_per_block)
+print("Blocks per grid:", blocks_per_grid)
+
 # print("W:", W)
 # print("b:", b)
 # print("c:", c)
 # print("x:", x)
 # print("h:", h)
 
-### CPU - loop
-tic = time()
-for i in range(R):
-    res = CPU_loop_Partition(W,b,c,x,h)
-print(" Partition - CPU - loop:         {}".format(time() - tic))
-print(res)
+x_comp = ["CPU - numpy + numba", "CPU - loop + numba (Jit)",
+     # "CPU - loop + numba (Object)", 
+     "CPU - loop + numba (NJit)",
+     #"CPU - loop + numba (Eager)", 
+     "CPU - loop + numba (Eager, NJit)",
+     "CPU - loop + numba (NoGil)", "CPU - loop + numba (Cache)",
+     #"CPU - loop + numba (Parallel)", "CPU - loop + numba (GuVectorize)",
+     #"CPU - loop + numba (CFunc)", 
+     "CPU - loop + numba (FastMath)",
+     "GPU - loop + numba"]
+x_exec = [#"CPU - Loop", 
+     "CPU - numpy", "CPU - numpy + numba", "CPU - loop + numba (Jit)",
+     #"CPU - loop + numba (Object)", 
+     "CPU - loop + numba (NJit)",
+     #"CPU - loop + numba (Eager)", 
+     "CPU - loop + numba (Eager, NJit)",
+     "CPU - loop + numba (NoGil)", "CPU - loop + numba (Cache)",
+     #"CPU - loop + numba (Parallel)", "CPU - loop + numba (GuVectorize)",
+     # "CPU - loop + numba (CFunc)", 
+     "CPU - loop + numba (FastMath)",
+     "GPU - loop + numba"]
+y_comp = []
+y_exec = []
 
-################ Numba ######################
-
-### CPU - numba (jit)
-res = CPU_loop_numba_Partition(W,b,c,x,h)  ### Compilation
-tic = time()
-for i in range(R):
-    res = CPU_loop_numba_Partition(W,b,c,x,h)
-print(" Partition - CPU - numba (jit): {}".format(time() - tic))
-print(res)
-
-# CPU - loop + numba (Object Mode)
-res = CPU_loop_numba_PartitionObject(W,b,c,x,h)   ### Compilation
-tic = time()
-for i in range(R):
-    res = CPU_loop_numba_PartitionObject(W,b,c,x,h) 
-print(" Partition - CPU - loop + numba (Object):  {}".format(time() - tic))
-print(res)
-
-# CPU - loop + numba (njit)
-res = CPU_loop_numba_PartitionNJit(W,b,c,x,h)    ### Compilation
-tic = time()
-for i in range(R):
-    res = CPU_loop_numba_PartitionNJit(W,b,c,x,h) 
-print(" Partition - CPU - loop + numba (njit):  {}".format(time() - tic))
-print(res)
-
-# CPU - loop + numba (Eager)
-res = CPU_loop_numba_PartitionEager(W,b,c,x,h)    ### Compilation
-tic = time()
-for i in range(R):
-    res = CPU_loop_numba_PartitionEager(W,b,c,x,h) 
-print(" Partition - CPU - loop + numba (Eager):  {}".format(time() - tic))
-print(res)
-
-# CPU - loop + numba (Eager, NJit)
-res = CPU_loop_numba_PartitionEagerNJit(W,b,c,x,h,n,m)   ### Compilation
-tic = time()
-for i in range(R):
-    res = CPU_loop_numba_PartitionEagerNJit(W,b,c,x,h,n,m)
-print(" Partition - CPU - loop + numba (Eager, NJit):  {}".format(time() - tic))
-print(res)
-
-# CPU - loop + numba (NoGil)
-res = CPU_loop_numba_PartitionNoGil(W,b,c,x,h)   ### Compilation
-tic = time()
-for i in range(R):
-    res = CPU_loop_numba_PartitionNoGil(W,b,c,x,h)
-print(" Partition - CPU - loop + numba (NoGil):  {}".format(time() - tic))
-print(res)
-
-# CPU - loop + numba (Cache)
-res = CPU_loop_numba_PartitionCache(W,b,c,x,h)   ### Compilation
-tic = time()
-for i in range(R):
-    res = CPU_loop_numba_PartitionCache(W,b,c,x,h)
-print(" Partition - CPU - loop + numba (Cache):  {}".format(time() - tic))
-print(res)
-
-## It is not possible
-# # CPU - loop + numba (Parallel)
-# res = CPU_loop_numba_PartitionParallel(W,b,c,x,h)   ### Compilation
+# ### CPU - loop
 # tic = time()
 # for i in range(R):
-#     res = CPU_loop_numba_PartitionParallel(W,b,c,x,h)
-# print(" Partition - CPU - loop + numba (Parallel):  {}".format(time() - tic))
+#     res = CPU_loop_Partition(W,b,c,x,h)
+
+# exec = time() - tic
+# y_exec.append(exec)
+
+
+# print(" Partition - CPU - loop:         {}", exec)
 # print(res)
-
-# # CPU - loop + numba (GuVectorize)
-# res = 0.
-# CPU_loop_numba_PartitionGuVectorize(W,b,c,x,h,res)   ### Compilation
-# tic = time()
-# for i in range(R):
-#     CPU_loop_numba_PartitionGuVectorize(W,b,c,x,h,reset_all)
-# print(" Partition - CPU - loop + numba (GuVectorize):  {}".format(time() - tic))
-# print(res)
-
-# CPU - loop + numba (CFunc)
-res = CPU_loop_numba_PartitionCFunc(W,b,c,x,h,n,m)   ### Compilation
-tic = time()
-for i in range(R):
-    res = CPU_loop_numba_PartitionCFunc(W,b,c,x,h,n,m)
-print(" Partition - CPU - loop + numba (CFunc):  {}".format(time() - tic))
-print(res)
-
-# CPU - loop + numba (FastMath)
-res = CPU_loop_numba_PartitionFastMath(W,b,c,x,h)   ### Compilation
-tic = time()
-for i in range(R):
-    res = CPU_loop_numba_PartitionFastMath(W,b,c,x,h)
-print(" Partition - CPU - loop + numba (FastMath):  {}".format(time() - tic))
-print(res)
-
-
-#############################################
-
 
 ### CPU - numpy
 tic = time()
 for i in range(R):
     res = CPU_numpy_Partition(W,b,c,x,h)
-print(" Partition - CPU - numpy:          {}".format(time() - tic))
+
+exec = time() - tic
+y_exec.append(exec)
+
+
+print(" Partition - CPU - numpy:          {}", exec)
 print(res)
 # print(np.dtype(res))
 
 ### CPU - numpy + numba
-res = CPU_numpy_numba_Partition(W,b,c,x,h)   ### Compilation
 tic = time()
+res = CPU_numpy_numba_Partition(W,b,c,x,h)   ### Compilation
+tic2 = time()
 for i in range(R):
     res = CPU_numpy_numba_Partition(W,b,c,x,h)
-print(" Partition - CPU - numpy + numba:  {}".format(time() - tic))
+
+exec = time() - tic2
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+print(" Partition - CPU - numpy + numba (exec):  {}", exec)
+print(" Partition - CPU - numpy + numba:  {}", comp)
 print(res)
+
+################ Numba ######################
+
+### CPU - numba (jit)
+tic = time()
+res = CPU_loop_numba_Partition(W,b,c,x,h)  ### Compilation
+tic2 = time()
+for i in range(R):
+    res = CPU_loop_numba_Partition(W,b,c,x,h)
+
+exec = time() - tic2
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+print(" Partition - CPU - numba (jit) (exec): {}", exec)
+print(" Partition - CPU - numba (jit): {}", comp)
+print(res)
+
+# # CPU - loop + numba (Object Mode)
+# tic = time()
+# res = CPU_loop_numba_PartitionObject(W,b,c,x,h)   ### Compilation
+# tic2 = time()
+# for i in range(R):
+#     res = CPU_loop_numba_PartitionObject(W,b,c,x,h)
+
+# exec = time() - tic2
+# comp = time() - tic
+
+# y_exec.append(exec)
+# y_comp.append(comp)
+
+# print(" Partition - CPU - loop + numba (Object) (exec):  {}", exec)
+# print(" Partition - CPU - loop + numba (Object):  {}", comp)
+# print(res)
+
+# CPU - loop + numba (njit)
+tic = time()
+res = CPU_loop_numba_PartitionNJit(W,b,c,x,h)    ### Compilation
+tic2 = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionNJit(W,b,c,x,h)
+
+exec = time() - tic2
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+print(" Partition - CPU - loop + numba (njit) (exec):  {}", exec)
+print(" Partition - CPU - loop + numba (njit):  {}", comp)
+print(res)
+
+# # CPU - loop + numba (Eager)
+# tic = time()
+# res = CPU_loop_numba_PartitionEager(W,b,c,x,h)    ### Compilation
+# tic2 = time()
+# for i in range(R):
+#     res = CPU_loop_numba_PartitionEager(W,b,c,x,h)
+
+# exec = time() - tic2
+# comp = time() - tic
+
+# y_exec.append(exec)
+# y_comp.append(comp)
+
+# print(" Partition - CPU - loop + numba (Eager) (exec):  {}", exec)
+# print(" Partition - CPU - loop + numba (Eager):  {}", comp)
+# print(res)
+
+# CPU - loop + numba (Eager, NJit)
+tic = time()
+res = CPU_loop_numba_PartitionEagerNJit(W,b,c,x,h,n,m)   ### Compilation
+tic2 = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionEagerNJit(W,b,c,x,h,n,m)
+
+exec = time() - tic2
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+print(" Partition - CPU - loop + numba (Eager, NJit) (exec):  {}", exec)
+print(" Partition - CPU - loop + numba (Eager, NJit):  {}", comp)
+print(res)
+
+# CPU - loop + numba (NoGil)
+tic = time()
+res = CPU_loop_numba_PartitionNoGil(W,b,c,x,h)   ### Compilation
+tic2 = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionNoGil(W,b,c,x,h)
+
+exec = time() - tic2
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+print(" Partition - CPU - loop + numba (NoGil) (exec):  {}", exec)
+print(" Partition - CPU - loop + numba (NoGil):  {}", comp)
+print(res)
+
+# CPU - loop + numba (Cache)
+tic = time()
+res = CPU_loop_numba_PartitionCache(W,b,c,x,h)   ### Compilation
+tic2 = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionCache(W,b,c,x,h)
+
+exec = time() - tic2
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+print(" Partition - CPU - loop + numba (Cache) (exec):  {}", exec)
+print(" Partition - CPU - loop + numba (Cache):  {}", comp)
+print(res)
+
+# # CPU - loop + numba (CFunc)
+# tic = time()
+# res = CPU_loop_numba_PartitionCFunc(W,b,c,x,h,n,m)   ### Compilation
+# tic2 = time()
+# for i in range(R):
+#     res = CPU_loop_numba_PartitionCFunc(W,b,c,x,h,n,m)
+
+# exec = time() - tic2
+# comp = time() - tic
+
+# y_exec.append(exec)
+# y_comp.append(comp)
+
+# print(" Partition - CPU - loop + numba (CFunc) (exec):  {}", exec)
+# print(" Partition - CPU - loop + numba (CFunc):  {}", comp)
+# print(res)
+
+# CPU - loop + numba (FastMath)
+tic = time()
+res = CPU_loop_numba_PartitionFastMath(W,b,c,x,h)   ### Compilation
+tic2 = time()
+for i in range(R):
+    res = CPU_loop_numba_PartitionFastMath(W,b,c,x,h)
+
+exec = time() - tic2
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+print(" Partition - CPU - loop + numba (FastMath) (exec):  {}", exec)
+print(" Partition - CPU - loop + numba (FastMath):  {}", comp)
+print(res)
+
+
+#############################################
 
 ### GPU - loop
 result = np.zeros(x.shape[0], dtype=np.float64)
-threads_per_block = 64
-blocks_per_grid = 16
 cW = cuda.to_device(W)
 cb = cuda.to_device(b)
 cc = cuda.to_device(c)
@@ -462,37 +572,54 @@ cresult = cuda.to_device(result)
 # print(np.dtype(cresult))
 
 tic = time()
+GPU_loop_Partition[blocks_per_grid, threads_per_block](cW,cb,cc,cx,ch, cresult)
+tic2 = time()
 for i in range(R):
     GPU_loop_Partition[blocks_per_grid, threads_per_block](cW,cb,cc,cx,ch, cresult)
     res = np.sum(cresult)
-print(" Partition - GPU - loop:  {}".format(time() - tic))
+
+exec = time() - tic2
+comp = time() - tic
+
+y_exec.append(exec)
+y_comp.append(comp)
+
+print(" Partition - GPU - loop (exec):  {}", exec)
+print(" Partition - GPU - loop:  {}", comp)
 print(res)
 # print(np.dtype(res))
 
+# Plot printing:
 
-############### Small values ###############:
+# Convert the results to miliseconds:
+for i in y_exec:
+  i = i*1000
 
-#  Partition - CPU - loop:         0.008224248886108398
-# 36.25802067986214
-#  Partition - CPU - numba: 0.003132343292236328
-# 36.25802067986214
-#  Partition - CPU - numpy:          0.0028841495513916016
-# 36.25802067986214
-#  Partition - CPU - numpy + numba:  0.0020291805267333984
-# 36.25802067986214
-#  Partition - GPU - loop:  0.3867149353027344
-# 36.258022
+plt.figure(figsize=(10, 6))
+plt.vlines(x_exec, 0, y_exec, linestyle="dashed", colors="red")
+plt.scatter(x_exec, y_exec, c="red")
+plt.xticks(x_exec, rotation=45, ha='right')
+plt.title("Tiempos de ejecución - Partición N = 10, M = 10", pad=20)
+plt.yscale('log')
+plt.ylabel("Tiempo en ms", labelpad=20)
+plt.xlabel("Implementación", labelpad=10)
+plt.show()
 
+# Execution and compilation time plot:
 
-################## Bigger values ###############:
+# Convert the results to miliseconds:
+for i in y_comp:
+  i = i*1000
 
-#  Partition - CPU - loop:         1.00943922996521
-# 4.769582996848387e+74
-#  Partition - CPU - numba: 1.0550997257232666
-# 4.769582996848387e+74
-#  Partition - CPU - numpy:          0.21292614936828613
-# 4.769582996848387e+74
-#  Partition - CPU - numpy + numba:  0.2262575626373291
-# 4.769582996848387e+74
-#  Partition - GPU - loop:  0.24902629852294922
-# inf
+plt.figure(figsize=(10, 6))
+plt.vlines(x_comp, 0, y_comp, linestyle="dashed", colors="red")
+plt.scatter(x_comp, y_comp, c="red")
+plt.xticks(x_comp, rotation=45, ha='right')
+plt.title("Tiempos de compilación y ejecución - Partición N = 10, M = 10", pad=20)
+plt.yscale('log')
+plt.ylabel("Tiempo en ms", labelpad=20)
+plt.xlabel("Implementación", labelpad=10)
+plt.show()
+
+print(len(y_exec))
+print(len(y_comp))
